@@ -1,6 +1,6 @@
 ## ⚙️ Backend (Express + JavaScript)
 
-### 0. Requisitos previos
+### Requisitos previos
 
 Antes de ejecutar la aplicación, asegúrate de tener instaladas las siguientes herramientas:
 
@@ -16,7 +16,13 @@ Antes de ejecutar la aplicación, asegúrate de tener instaladas las siguientes 
   Se instala automáticamente con `npm install` si está en `package.json`.
 
 ---
+### 0. Clonar el repositorio
 
+Primero, clona el repositorio del proyecto desde GitHub (o tu plataforma de control de versiones):
+
+```bash
+git clone https://github.com/tu-usuario/tu-repositorio.git
+````
 ### 1. Instalar dependencias
 
 ```bash
@@ -38,7 +44,8 @@ npx prisma migrate dev --name init
 ````
 npx prisma studio
 ````
-### 4. Ejecutar migraciones prisma
+### 4. Ejecutar la aplicación
 
 ````
 npm run dev
+
