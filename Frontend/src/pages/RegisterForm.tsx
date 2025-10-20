@@ -1,9 +1,7 @@
 import { useState, useMemo } from 'react'
 
-// 1️⃣ Validador de correo (regex)
 const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// 2️⃣ Tipo de datos del formulario
 type Persona = {
   ci: string
   nombres: string
@@ -13,7 +11,6 @@ type Persona = {
   password: string
 }
 
-// 3️⃣ Función auxiliar de validación por campo
 function validateField(key: keyof Persona, value: string) {
   switch (key) {
     case 'ci':        return value ? '' : 'CI es requerido'
@@ -31,7 +28,6 @@ function validateField(key: keyof Persona, value: string) {
   }
 }
 
-// 4️⃣ Componente principal
 export default function RegisterForm({ onSuccess }: { onSuccess?: (d: any) => void }) {
   const [form, setForm] = useState<Persona>({
     ci: '', nombres: '', apellidos: '', correo: '', telefono: '', password: ''
@@ -41,30 +37,38 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: any) => vo
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
-  // 🧩 Manejadores
-const onChange = (k: keyof Persona) => (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = e.target.value
-  setForm(prev => ({ ...prev, [k]: value }))
-  if (submitted) {
-    setErrors(prev => ({ ...prev, [k]: validateField(k, value ?? '') }))
+  // Handlers
+  const onChange = (k: keyof Persona) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setForm(prev => ({ ...prev, [k]: value }))
+    if (submitted) {
+      setErrors(prev => ({ ...prev, [k]: validateField(k, value ?? '') }))
+    }
   }
-}
 
-const onBlur = (k: keyof Persona) => () => {
-  const value = form[k] ?? ''           // <- coalesce a string
-  setErrors(prev => ({ ...prev, [k]: validateField(k, value) }))
-}
+  const onBlur = (k: keyof Persona) => () => {
+    const value = form[k] ?? ''
+    setErrors(prev => ({ ...prev, [k]: validateField(k, value) }))
+  }
 
-const validate = (f: Persona) => {
-  const e: Record<string, string> = {}
-  ;(Object.keys(f) as Array<keyof Persona>).forEach((k) => {   // <- paréntesis correctos y tipado
-    const value = f[k] ?? ''                                   // <- coalesce a string
-    const msg = validateField(k, value)
-    if (msg) e[k] = msg
-  })
-  return e
-}
+  const validate = (f: Persona) => {
+    const e: Record<string, string> = {}
+    ;(Object.keys(f) as Array<keyof Persona>).forEach((k) => {
+      const value = f[k] ?? ''
+      const msg = validateField(k, value)
+      if (msg) e[k] = msg
+    })
+    return e
+  }
+
   const isValid = useMemo(() => Object.keys(validate(form)).length === 0, [form])
+
+  // (Opcional) progreso simple con campos requeridos
+  const requiredKeys: (keyof Persona)[] = ['ci', 'nombres', 'apellidos', 'correo', 'password']
+  const progressPct = useMemo(() => {
+    const filled = requiredKeys.filter(k => (form[k] ?? '').trim().length > 0).length
+    return Math.round((filled / requiredKeys.length) * 100)
+  }, [form])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,80 +98,105 @@ const validate = (f: Persona) => {
     }
   }
 
-  // 🧾 Renderizado del formulario
   return (
-    <form onSubmit={handleSubmit} noValidate data-testid="form-registro">
-      <div>
-        <label>CI</label>
-        <input
-          aria-label="CI"
-          value={form.ci}
-          onChange={onChange('ci')}
-          onBlur={onBlur('ci')}
-        />
-        {submitted && errors.ci && <small>{errors.ci}</small>}
+    <div className="register-page">
+      <h1 className="register-title">Registro</h1>
+
+      {/* Barra de progreso (opcional) */}
+      <div className="progress" aria-hidden="true">
+        <div className="bar" style={{ width: `${progressPct}%` }} />
       </div>
 
-      <div>
-        <label>Nombres</label>
-        <input
-          aria-label="Nombres"
-          value={form.nombres}
-          onChange={onChange('nombres')}
-          onBlur={onBlur('nombres')}
-        />
-        {submitted && errors.nombres && <small>{errors.nombres}</small>}
-      </div>
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        data-testid="form-registro"
+        className="register-form"
+      >
+        <div className="field">
+          <label>CI</label>
+          <input
+            aria-label="CI"
+            value={form.ci}
+            onChange={onChange('ci')}
+            onBlur={onBlur('ci')}
+            className="input-underline"
+            placeholder="Ingresa tu CI"
+          />
+          {submitted && errors.ci && <small className="error">{errors.ci}</small>}
+        </div>
 
-      <div>
-        <label>Apellidos</label>
-        <input
-          aria-label="Apellidos"
-          value={form.apellidos}
-          onChange={onChange('apellidos')}
-          onBlur={onBlur('apellidos')}
-        />
-        {submitted && errors.apellidos && <small>{errors.apellidos}</small>}
-      </div>
+        <div className="field">
+          <label>Nombres</label>
+          <input
+            aria-label="Nombres"
+            value={form.nombres}
+            onChange={onChange('nombres')}
+            onBlur={onBlur('nombres')}
+            className="input-underline"
+            placeholder="Tus nombres"
+          />
+          {submitted && errors.nombres && <small className="error">{errors.nombres}</small>}
+        </div>
 
-      <div>
-        <label>Correo</label>
-        <input
-          aria-label="Correo"
-          type="email"
-          value={form.correo}
-          onChange={onChange('correo')}
-          onBlur={onBlur('correo')}
-        />
-        {submitted && errors.correo && <small>{errors.correo}</small>}
-      </div>
+        <div className="field">
+          <label>Apellidos</label>
+          <input
+            aria-label="Apellidos"
+            value={form.apellidos}
+            onChange={onChange('apellidos')}
+            onBlur={onBlur('apellidos')}
+            className="input-underline"
+            placeholder="Tus apellidos"
+          />
+          {submitted && errors.apellidos && <small className="error">{errors.apellidos}</small>}
+        </div>
 
-      <div>
-        <label>Teléfono</label>
-        <input
-          aria-label="Teléfono"
-          value={form.telefono}
-          onChange={onChange('telefono')}
-        />
-      </div>
+        <div className="field">
+          <label>Correo</label>
+          <input
+            aria-label="Correo"
+            type="email"
+            value={form.correo}
+            onChange={onChange('correo')}
+            onBlur={onBlur('correo')}
+            className="input-underline"
+            placeholder="tucorreo@dominio.com"
+          />
+          {submitted && errors.correo && <small className="error">{errors.correo}</small>}
+        </div>
 
-      <div>
-        <label>Password</label>
-        <input
-          aria-label="Password"
-          type="password"
-          value={form.password}
-          onChange={onChange('password')}
-          onBlur={onBlur('password')}
-        />
-        {submitted && errors.password && <small>{errors.password}</small>}
-      </div>
+        <div className="field">
+          <label>Teléfono</label>
+          <input
+            aria-label="Teléfono"
+            value={form.telefono}
+            onChange={onChange('telefono')}
+            className="input-underline"
+            placeholder="Opcional"
+          />
+        </div>
 
-      {serverError && <div role="alert">{serverError}</div>}
+        <div className="field">
+          <label>Password</label>
+          <input
+            aria-label="Password"
+            type="password"
+            value={form.password}
+            onChange={onChange('password')}
+            onBlur={onBlur('password')}
+            className="input-underline input-with-eye"
+            placeholder="Mínimo 6 caracteres"
+          />
+          {submitted && errors.password && <small className="error">{errors.password}</small>}
+        </div>
 
-      <button type="submit" disabled={!isValid || loading}>
-        {loading ? 'Enviando...' : 'Registrar'}
-      </button>
-    </form>
+        {serverError && <div role="alert" className="error">{serverError}</div>}
+
+        <button type="submit" disabled={!isValid || loading} className="btn-primary">
+          {loading ? 'Enviando...' : 'Registrar'}
+        </button>
+      </form>
+    </div>
   )
 }
