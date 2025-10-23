@@ -2,6 +2,11 @@ import { useState, useMemo } from 'react'
 
 const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Definir tipo para la respuesta de onSuccess
+interface ResponseData {
+  message: string;
+}
+
 type Persona = {
   ci: string
   nombres: string
@@ -28,7 +33,7 @@ function validateField(key: keyof Persona, value: string) {
   }
 }
 
-export default function RegisterForm({ onSuccess }: { onSuccess?: (d: any) => void }) {
+export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseData) => void }) {
   const [form, setForm] = useState<Persona>({
     ci: '', nombres: '', apellidos: '', correo: '', telefono: '', password: ''
   })
@@ -64,11 +69,13 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: any) => vo
   const isValid = useMemo(() => Object.keys(validate(form)).length === 0, [form])
 
   // (Opcional) progreso simple con campos requeridos
-  const requiredKeys: (keyof Persona)[] = ['ci', 'nombres', 'apellidos', 'correo', 'password']
+  
   const progressPct = useMemo(() => {
-    const filled = requiredKeys.filter(k => (form[k] ?? '').trim().length > 0).length
-    return Math.round((filled / requiredKeys.length) * 100)
-  }, [form])
+  const requiredKeys: (keyof Persona)[] = ['ci', 'nombres', 'apellidos', 'correo', 'password'];
+  const filled = requiredKeys.filter(k => (form[k] ?? '').trim().length > 0).length
+  return Math.round((filled / requiredKeys.length) * 100)
+  }, [form]);  // `requiredKeys` ahora está dentro de useMemo
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,7 +97,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: any) => vo
         setServerError(data?.message || 'Error al registrar')
         return
       }
-      onSuccess?.(data)
+      onSuccess?.(data)  // Ahora el tipo de `data` se ajusta a ResponseData
     } catch {
       setServerError('Error de red')
     } finally {
