@@ -1,5 +1,5 @@
-import { expect } from 'vitest'
-import * as matchers from '@testing-library/jest-dom/matchers'
+import { expect } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
 
-// registra los matchers: toBeInTheDocument, toHaveTextContent, etc.
-expect.extend(matchers)
+// Registra los matchers para los tests
+expect.extend(matchers);
