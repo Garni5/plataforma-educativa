@@ -36,7 +36,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install deps
+      - name: Install dependencies
         run: npm ci
 
       - name: Ensure jsdom is installed
@@ -47,14 +47,16 @@ jobs:
 
       - name: Test (Vitest)
         run: |
-          if ls -1 **/*.test.* **/*.spec.* 2>/dev/null | grep -q .; then
+          if find ./src -type f \( -name "*.test.*" -o -name "*.spec.*" \) | grep -q .; then
+            echo "Running Vitest..."
             npm test -- --run
           else
-            echo "No frontend test files found; skipping tests."
+            echo "No test files found; skipping Vitest."
           fi
 
       - name: Build
         run: npm run build --if-present
+
 
   backend:
     name: Backend (lint, test, build if present)
