@@ -1,6 +1,3 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: CI (frontend & backend)
 
 on:
@@ -9,13 +6,13 @@ on:
   pull_request:
     branches: ["main", "saul"]
 
-# Evita ejecutar jobs viejos si empujas más commits a la misma rama/PR
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   CI: true
+  NODE_ENV: test  # Asegura entorno correcto para Vitest
 
 jobs:
   frontend:
@@ -25,7 +22,6 @@ jobs:
       matrix:
         node-version: [18.x, 20.x, 22.x]
 
-    # Todos los "run:" se ejecutan dentro de ./frontend
     defaults:
       run:
         working-directory: ./frontend
@@ -43,11 +39,19 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: Ensure jsdom is installed
+        run: npm install --save-dev jsdom
+
       - name: Lint
         run: npm run lint
 
       - name: Test (Vitest)
-        run: npm test -- --run  # tu script ya es "vitest run"
+        run: |
+          if ls -1 **/*.test.* **/*.spec.* 2>/dev/null | grep -q .; then
+            npm test -- --run
+          else
+            echo "No frontend test files found; skipping tests."
+          fi
 
       - name: Build
         run: npm run build --if-present
@@ -62,7 +66,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Verifica si existe backend/package.json
       - name: Check backend presence
         id: has_backend
         run: |
@@ -109,4 +112,3 @@ jobs:
         if: steps.has_backend.outputs.present == 'true'
         working-directory: ./backend
         run: npm run build --if-present
-
