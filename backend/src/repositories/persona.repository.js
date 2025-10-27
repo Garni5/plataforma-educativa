@@ -26,9 +26,6 @@ async function createPersona(data) {
   });
   if (existing) throw new Error("El usuario con este CI o correo ya existe");
 
-  
-
-
   const persona = await prisma.persona.create({
     data: {
       ci: data.ci,

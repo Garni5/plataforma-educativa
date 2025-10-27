@@ -1,55 +1,47 @@
-
-const bcrypt = require("bcrypt");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const AzureAdOAuth2Strategy = require("passport-azure-ad-oauth2").Strategy;
 const jwt = require("jsonwebtoken");
-const personaRepo = require("../repositories/persona.repository");
-const prisma = require("../prismaClient");
-
-const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
-
-async function registerPersona(data) {
-
-  const existing = await prisma.persona.findFirst({
-    where: { OR: [{ ci: data.ci }, { correo: data.correo }] },
-  });
-  if (existing) throw { status: 409, message: "El usuario con este CI o correo ya existe" };
+require('dotenv').config();
 
 
-  const hashedPassword = await bcrypt.hash(data.password, 10);
+const users = []; // Base de datos en memoria
 
+// Serialización Passport
+passport.serializeUser((user, done) => done(null, user.email));
+passport.deserializeUser((email, done) => {
+  const user = users.find(u => u.email === email);
+  done(null, user || null);
+});
 
-  const persona = await personaRepo.createPersona({ ...data, password: hashedPassword });
-  return persona;
-}
+// Google Strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "/auth/google/callback"
+}, (accessToken, refreshToken, profile, done) => {
+  let user = users.find(u => u.email === profile.emails[0].value);
+  if (!user) {
+    user = { email: profile.emails[0].value, name: profile.displayName };
+    users.push(user);
+  }
+  done(null, user);
+}));
 
-async function loginPersona(login, password) {
-  const persona = await prisma.persona.findFirst({
-    where: { OR: [{ correo: login }, { ci: login }] },
-    include: {
-      roles: { include: { privilegio: true } },
-    },
-  });
+// Microsoft Strategy
+passport.use(new AzureAdOAuth2Strategy({
+  clientID: process.env.MICROSOFT_CLIENT_ID,
+  clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+  callbackURL: "/auth/microsoft/callback"
+}, (accessToken, refreshToken, params, profile, done) => {
+  const decoded = jwt.decode(params.id_token);
+  let user = users.find(u => u.email === decoded.preferred_username);
+  if (!user) {
+    user = { email: decoded.preferred_username, name: decoded.name };
+    users.push(user);
+  }
+  done(null, user);
+}));
 
-  if (!persona) throw { status: 404, message: "Usuario no encontrado" };
-
-  const valid = await bcrypt.compare(password, persona.password);
-  if (!valid) throw { status: 401, message: "Contraseña incorrecta" };
-
-  const roles = persona.roles.map((r) => ({
-    id_rol: r.id_rol,
-    nombre_privilegio: r.privilegio?.nombre_privilegio || null,
-  }));
-
-  const token = jwt.sign(
-    {
-      id_persona: persona.id_persona,
-      correo: persona.correo,
-      roles,
-    },
-    JWT_SECRET,
-    { expiresIn: "1h" }
-  );
-
-  return { persona, token };
-}
-
-module.exports = { registerPersona, loginPersona };
+// Exportamos DB para usar en controladores si queremos
+module.exports = { users };

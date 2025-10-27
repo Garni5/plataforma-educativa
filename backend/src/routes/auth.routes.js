@@ -1,11 +1,13 @@
-
 const express = require("express");
+const router = express.Router();
 const authController = require("../controllers/auth.controller");
 
-const router = express.Router();
+// Google
+router.get("/google", authController.googleLogin);
+router.get("/google/callback", authController.googleCallback);
 
-router.post("/register", authController.register);
-
-router.post("/login", authController.login);
+// Microsoft
+router.get("/microsoft", authController.microsoftLogin);
+router.get("/microsoft/callback", authController.microsoftCallback);
 
 module.exports = router;

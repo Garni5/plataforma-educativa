@@ -7,7 +7,10 @@ export default [
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: "script",
-      globals: globals.node, 
+       globals: {
+        ...globals.node, 
+        ...globals.jest, 
+      }, 
     },
     rules: {
       ...js.configs.recommended.rules,

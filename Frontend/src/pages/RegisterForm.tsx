@@ -76,7 +76,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: any) => vo
     const eMap = validate(form)
     setErrors(eMap)
     if (Object.keys(eMap).length) return
-
+     console.log(form);
     try {
       setLoading(true)
       setServerError(null)
