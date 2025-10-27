@@ -8,7 +8,7 @@ const generateJWT = (user) => {
 // Google
 const googleLogin = passport.authenticate("google", { scope: ["profile", "email"] });
 const googleCallback = (req, res, next) => {
-  passport.authenticate("google", (err, user, info) => {
+  passport.authenticate("google", (err, user) => {
     if (err || !user) return res.status(401).json({ error: "Error autenticando Google" });
 
     const token = generateJWT(user);

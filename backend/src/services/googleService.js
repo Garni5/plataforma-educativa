@@ -1,4 +1,4 @@
-const verifyGoogleToken = async (token) => {
+const verifyGoogleToken = async () => {
   // Este archivo será mockeado en las pruebas, así que no hace nada real
   throw new Error("No implementado");
 };
