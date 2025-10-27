@@ -2,9 +2,9 @@ name: CI (frontend & backend)
 
 on:
   push:
-    branches: ["main", "saul"]
+    branches: ["main", "saul", "jhonny"]
   pull_request:
-    branches: ["main", "saul"]
+    branches: ["main", "saul", "jhonny"]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -12,7 +12,7 @@ concurrency:
 
 env:
   CI: true
-  NODE_ENV: test  # Asegura entorno correcto para Vitest
+  NODE_ENV: test # Asegura entorno correcto para Vitest
 
 jobs:
   frontend:
@@ -57,7 +57,6 @@ jobs:
 
       - name: Build
         run: npm run build --if-present
-
 
   backend:
     name: Backend (lint, test, build if present)
