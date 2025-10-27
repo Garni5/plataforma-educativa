@@ -2,7 +2,7 @@ import {
   describe, it, expect, beforeEach, afterEach, vi, type Mock
 } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import RegisterForm from '../RegisterForm'
+import RegisterForm from './RegisterForm'
 
 // helper: acepta string o RegExp
 const fill = async (label: string | RegExp, value: string) => {
