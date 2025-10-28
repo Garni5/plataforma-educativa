@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import '../RegisterForms.css'; 
 
 const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

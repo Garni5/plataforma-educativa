@@ -16,12 +16,11 @@ datasource db {
 
 model persona {
   id_persona Int      @id @default(autoincrement())
-  ci         String   @db.VarChar(100) @unique
   nombres    String   @db.VarChar(100)
   apellidos  String   @db.VarChar(100)
   correo     String   @db.VarChar(100) @unique
-  telefono   String?  @db.VarChar(100)
   password   String   @db.VarChar(100)
+  confirmar_password String @db.VarChar(100)
 
   // Relaciones
   roles rol_usuario[]
