@@ -103,12 +103,12 @@ jobs:
       - name: Test (Vitest - Node)
         if: steps.has_backend.outputs.present == 'true'
         run: |
-          echo "🔎 Buscando archivos de prueba..."
+          echo " Buscando archivos de prueba..."
           if find ./test -type f \( -name "*.test.*" -o -name "*.spec.*" \) | grep -q .; then
-            echo "🧪 Ejecutando pruebas de backend con Vitest..."
+            echo " Ejecutando pruebas de backend con Vitest..."
             npm test -- --run --reporter=verbose
           else
-            echo "⚠️  No se encontraron archivos de prueba en backend/test, se omite."
+            echo "  No se encontraron archivos de prueba en backend/test, se omite."
           fi
 
       - name: Build (optional)
