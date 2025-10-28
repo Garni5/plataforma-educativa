@@ -1,9 +1,42 @@
 const passport = require("passport");
-const jwt = require("jsonwebtoken");
+const authService = require("../services/auth.service");
 
-const generateJWT = (user) => {
-  return jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-};
+//registro sin google
+async function register(req, res) {
+  try {
+    
+    const persona = await authService.registerPersona(req.body);
+    
+    res.status(201).json({
+      success: true,
+      data: persona,
+      message: "Usuario registrado correctamente"
+    });
+  } catch (err) {
+    res.status(err.status || 400).json({
+      success: false,
+      message: err.message || "Error en el registro"
+    });
+  }
+}
+
+//login sin google
+async function login(req, res) {
+  try {
+    const { login, password } = req.body; 
+    const result = await authService.loginPersona(login, password);
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: "Usuario autenticado correctamente"
+    });
+  } catch (err) {
+    res.status(err.status || 401).json({
+      success: false,
+      message: err.message || "Error en el login"
+    });
+  }
+}
 
 // Google
 const googleLogin = passport.authenticate("google", { scope: ["profile", "email"] });
@@ -11,8 +44,8 @@ const googleCallback = (req, res, next) => {
   passport.authenticate("google", (err, user) => {
     if (err || !user) return res.status(401).json({ error: "Error autenticando Google" });
 
-    const token = generateJWT(user);
-    res.json({ jwt: token, user });
+ 
+    res.json({ jwt:user.token, user });
   })(req, res, next);
 };
 
@@ -27,5 +60,7 @@ module.exports = {
   googleLogin,
   googleCallback,
   microsoftLogin,
-  microsoftCallback
+  microsoftCallback,
+  register,
+  login
 };

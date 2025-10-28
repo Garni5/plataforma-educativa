@@ -1,47 +1,80 @@
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const AzureAdOAuth2Strategy = require("passport-azure-ad-oauth2").Strategy;
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-require('dotenv').config();
+const personaRepo = require("../repositories/persona.repository");
+const prisma = require("../prismaClient");
 
+const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 
-const users = []; // Base de datos en memoria
+async function registerPersona(data) {
+  console.log("sldkjfasd");
+  const existing = await prisma.persona.findFirst({
+    where: { correo: data.correo },
+  });
+  console.log(existing);
+  if (existing) throw { status: 409, message: "El usuario con este  correo ya existe" };
 
-// Serialización Passport
-passport.serializeUser((user, done) => done(null, user.email));
-passport.deserializeUser((email, done) => {
-  const user = users.find(u => u.email === email);
-  done(null, user || null);
-});
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+  const persona = await personaRepo.createPersona({ ...data, password: hashedPassword });
+  return persona;
+}
 
-// Google Strategy
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "/auth/google/callback"
-}, (accessToken, refreshToken, profile, done) => {
-  let user = users.find(u => u.email === profile.emails[0].value);
-  if (!user) {
-    user = { email: profile.emails[0].value, name: profile.displayName };
-    users.push(user);
+async function loginPersona(login, password) {
+  // Buscar usuario y traer roles
+  const persona = await prisma.persona.findFirst({
+    where: { correo: login },
+    include: { roles: true }, // Solo include roles directamente
+  });
+
+  if (!persona) throw { status: 404, message: "Usuario no encontrado" };
+
+  // Verificar contraseña
+  const valid = await bcrypt.compare(password, persona.password);
+  if (!valid) throw { status: 401, message: "Contraseña incorrecta" };
+
+  // Mapear roles para el JWT
+  const roles = persona.roles.map(r => ({
+    id_rol: r.id_rol,
+    nombre_privilegio: r.nombre_privilegio, // ya no usamos privilegio?.nombre_privilegio
+  }));
+
+  // Generar token
+  const token = jwt.sign(
+    { id_persona: persona.id_persona, correo: persona.correo, roles },
+    JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  return { persona, token };
+}
+
+// 🔹 Nuevo: para login social (Google o Microsoft)
+async function loginSocial(correo, nombres,apellidos) {
+  let persona = await prisma.persona.findFirst({ where: { correo } });
+  console.log("🚀 ~ file: auth.service.js ~ line 41 ~ loginSocial ~ persona", persona)
+  console.log(persona);
+  console.log(correo);
+  console.log(nombres);
+  console.log(apellidos);
+
+  if (!persona) {
+    console.log('entra cuando no hay persona');
+   try {
+  persona = await prisma.persona.create({
+    data: { correo, nombres, apellidos, telefono: null, password: null },
+  });
+} catch (err) {
+  console.error("❌ Error creando persona:", err);
+  throw err;
+}
   }
-  done(null, user);
-}));
+  console.log(persona);
+  const token = jwt.sign(
+    { id_persona: persona.id_persona, correo: persona.correo },
+    JWT_SECRET,
+    { expiresIn: "1h" }
+  );
 
-// Microsoft Strategy
-passport.use(new AzureAdOAuth2Strategy({
-  clientID: process.env.MICROSOFT_CLIENT_ID,
-  clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-  callbackURL: "/auth/microsoft/callback"
-}, (accessToken, refreshToken, params, profile, done) => {
-  const decoded = jwt.decode(params.id_token);
-  let user = users.find(u => u.email === decoded.preferred_username);
-  if (!user) {
-    user = { email: decoded.preferred_username, name: decoded.name };
-    users.push(user);
-  }
-  done(null, user);
-}));
+  return { persona, token };
+}
 
-// Exportamos DB para usar en controladores si queremos
-module.exports = { users };
+module.exports = { registerPersona, loginPersona, loginSocial };
