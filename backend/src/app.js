@@ -26,6 +26,7 @@ app.use("/auth", authRoutes);
 app.use("/api", protectedRoutes);
 
 
+
 app.get("/", (req, res) => {
   res.send('<a href="/auth/google">Login with Google</a>');
 });

@@ -1,5 +1,4 @@
 const { googleCallback } = require("../../controllers/auth.controller");
-const authService = require("../../services/auth.service");
 const passport = require("passport");
 
 jest.mock("../../services/auth.service");
@@ -9,7 +8,7 @@ describe("Google Callback", () => {
   let req, res, next;
 
   beforeEach(() => {
-    req = {}; 
+    req = {};
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
@@ -17,13 +16,12 @@ describe("Google Callback", () => {
     next = jest.fn();
   });
 
-  it("debería responder con usuario y token cuando la autenticación es exitosa", async () => {
-    // Mock del usuario que devuelve passport
+  it("responde con usuario y token cuando la autenticación es exitosa", async () => {
     const mockUser = { id_persona: 1, correo: "test@mail.com", token: "abc123" };
 
-    // Mockeamos passport.authenticate para simular éxito
+    // Mock de passport.authenticate simulando éxito
     passport.authenticate = jest.fn((strategy, callback) => {
-      return (req, res, next) => {
+      return () => {
         callback(null, mockUser); // sin error, con usuario
       };
     });
@@ -36,9 +34,9 @@ describe("Google Callback", () => {
     });
   });
 
-  it("debería responder con error 401 cuando falla la autenticación", async () => {
+  it("responde con error 401 cuando falla la autenticación", async () => {
     passport.authenticate = jest.fn((strategy, callback) => {
-      return (req, res, next) => {
+      return () => {
         callback(new Error("Error autenticando Google"), null);
       };
     });

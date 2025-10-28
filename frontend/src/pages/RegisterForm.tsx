@@ -1,26 +1,33 @@
 import { useState, useMemo } from 'react'
+import '../RegisterForms.css'
 
 const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Definir tipo para la respuesta de onSuccess
+// Respuesta de la API (ajústalo si tu backend devuelve otra cosa)
 interface ResponseData {
-  message: string;
+  message?: string
+  id_persona?: number
 }
 
+// Payload real que se envía al backend (sin confirmarPassword)
 type Persona = {
-  ci: string
   nombres: string
   apellidos: string
   correo: string
-  telefono?: string
   password: string
 }
 
-function validateField(key: keyof Persona, value: string) {
+// Estado del formulario en UI (incluye confirmarPassword solo para validar en cliente)
+type FormState = Persona & {
+  confirmarPassword: string
+}
+
+function validateField(key: keyof FormState, value: string, form: FormState) {
   switch (key) {
-    case 'ci':        return value ? '' : 'CI es requerido'
-    case 'nombres':   return value ? '' : 'Nombres es requerido'
-    case 'apellidos': return value ? '' : 'Apellidos es requerido'
+    case 'nombres':
+      return value ? '' : 'Nombres es requerido'
+    case 'apellidos':
+      return value ? '' : 'Apellidos es requerido'
     case 'correo':
       if (!value) return 'Correo es requerido'
       if (!emailRx.test(value)) return 'Formato de correo inválido'
@@ -29,13 +36,22 @@ function validateField(key: keyof Persona, value: string) {
       if (!value) return 'Password es requerido'
       if (value.length < 6) return 'Password debe tener al menos 6 caracteres'
       return ''
-    default: return ''
+    case 'confirmarPassword':
+      if (!value) return 'Confirma tu contraseña'
+      if (value !== form.password) return 'Las contraseñas no coinciden'
+      return ''
+    default:
+      return ''
   }
 }
 
 export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseData) => void }) {
-  const [form, setForm] = useState<Persona>({
-    ci: '', nombres: '', apellidos: '', correo: '', telefono: '', password: ''
+  const [form, setForm] = useState<FormState>({
+    nombres: '',
+    apellidos: '',
+    correo: '',
+    password: '',
+    confirmarPassword: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -43,24 +59,34 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
   const [serverError, setServerError] = useState<string | null>(null)
 
   // Handlers
-  const onChange = (k: keyof Persona) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    setForm(prev => ({ ...prev, [k]: value }))
-    if (submitted) {
-      setErrors(prev => ({ ...prev, [k]: validateField(k, value ?? '') }))
-    }
+    setForm(prev => {
+      const next = { ...prev, [k]: value }
+      if (submitted) {
+        setErrors(prevErr => ({ ...prevErr, [k]: validateField(k, value ?? '', next) }))
+        // si cambia password, revalida confirmación
+        if (k === 'password' && submitted) {
+          setErrors(prevErr => ({
+            ...prevErr,
+            confirmarPassword: validateField('confirmarPassword', next.confirmarPassword, next),
+          }))
+        }
+      }
+      return next
+    })
   }
 
-  const onBlur = (k: keyof Persona) => () => {
+  const onBlur = (k: keyof FormState) => () => {
     const value = form[k] ?? ''
-    setErrors(prev => ({ ...prev, [k]: validateField(k, value) }))
+    setErrors(prev => ({ ...prev, [k]: validateField(k, value, form) }))
   }
 
-  const validate = (f: Persona) => {
+  const validate = (f: FormState) => {
     const e: Record<string, string> = {}
-    ;(Object.keys(f) as Array<keyof Persona>).forEach((k) => {
+    ;(Object.keys(f) as Array<keyof FormState>).forEach(k => {
       const value = f[k] ?? ''
-      const msg = validateField(k, value)
+      const msg = validateField(k, value, f)
       if (msg) e[k] = msg
     })
     return e
@@ -68,14 +94,12 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
 
   const isValid = useMemo(() => Object.keys(validate(form)).length === 0, [form])
 
-  // (Opcional) progreso simple con campos requeridos
-  
+  // Progreso simple (solo campos requeridos reales)
   const progressPct = useMemo(() => {
-  const requiredKeys: (keyof Persona)[] = ['ci', 'nombres', 'apellidos', 'correo', 'password'];
-  const filled = requiredKeys.filter(k => (form[k] ?? '').trim().length > 0).length
-  return Math.round((filled / requiredKeys.length) * 100)
-  }, [form]);  // `requiredKeys` ahora está dentro de useMemo
-
+    const requiredKeys: (keyof FormState)[] = ['nombres', 'apellidos', 'correo', 'password', 'confirmarPassword']
+    const filled = requiredKeys.filter(k => (form[k] ?? '').trim().length > 0).length
+    return Math.round((filled / requiredKeys.length) * 100)
+  }, [form])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,17 +111,26 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
     try {
       setLoading(true)
       setServerError(null)
-      const res = await fetch('/api/auth/register', {
+      // solo enviamos lo necesario al backend
+      const payload: Persona = {
+        nombres: form.nombres,
+        apellidos: form.apellidos,
+        correo: form.correo,
+        password: form.password,
+      }
+
+      const res = await fetch('/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
-      const data = await res.json()
+
+      const data = (await res.json()) as ResponseData
       if (!res.ok) {
         setServerError(data?.message || 'Error al registrar')
         return
       }
-      onSuccess?.(data)  // Ahora el tipo de `data` se ajusta a ResponseData
+      onSuccess?.(data)
     } catch {
       setServerError('Error de red')
     } finally {
@@ -120,19 +153,6 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
         data-testid="form-registro"
         className="register-form"
       >
-        <div className="field">
-          <label>CI</label>
-          <input
-            aria-label="CI"
-            value={form.ci}
-            onChange={onChange('ci')}
-            onBlur={onBlur('ci')}
-            className="input-underline"
-            placeholder="Ingresa tu CI"
-          />
-          {submitted && errors.ci && <small className="error">{errors.ci}</small>}
-        </div>
-
         <div className="field">
           <label>Nombres</label>
           <input
@@ -174,17 +194,6 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
         </div>
 
         <div className="field">
-          <label>Teléfono</label>
-          <input
-            aria-label="Teléfono"
-            value={form.telefono}
-            onChange={onChange('telefono')}
-            className="input-underline"
-            placeholder="Opcional"
-          />
-        </div>
-
-        <div className="field">
           <label>Password</label>
           <input
             aria-label="Password"
@@ -196,6 +205,22 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
             placeholder="Mínimo 6 caracteres"
           />
           {submitted && errors.password && <small className="error">{errors.password}</small>}
+        </div>
+
+        <div className="field">
+          <label>Confirmar contraseña</label>
+          <input
+            aria-label="Confirmar contraseña"
+            type="password"
+            value={form.confirmarPassword}
+            onChange={onChange('confirmarPassword')}
+            onBlur={onBlur('confirmarPassword')}
+            className="input-underline"
+            placeholder="Repítela igual"
+          />
+          {submitted && errors.confirmarPassword && (
+            <small className="error">{errors.confirmarPassword}</small>
+          )}
         </div>
 
         {serverError && <div role="alert" className="error">{serverError}</div>}

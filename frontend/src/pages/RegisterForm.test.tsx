@@ -11,7 +11,6 @@ const fill = async (label: string | RegExp, value: string) => {
   return input
 }
 
-// mock global fetch con Vitest
 let fetchMock: Mock
 beforeEach(() => {
   fetchMock = vi.fn()
@@ -21,60 +20,71 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('RegisterForm (TDD)', () => {
+describe('RegisterForm (TDD) - sin CI ni Teléfono y con Confirmar contraseña (solo frontend)', () => {
   it('renderiza campos y el botón enviar está deshabilitado al inicio', () => {
     render(<RegisterForm />)
-    expect(screen.getByLabelText(/ci/i)).toBeInTheDocument()
+
     expect(screen.getByLabelText(/nombres/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/apellidos/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/correo/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/tel[eé]fono/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+    // el nuevo campo solo para validación en cliente
+    expect(
+      screen.getByLabelText(/confirm(ar)? (password|contraseñ[ao])/i)
+    ).toBeInTheDocument()
+
     expect(screen.getByRole('button', { name: /registrar/i })).toBeDisabled()
   })
 
   it('muestra errores de validación cuando faltan datos o son inválidos', async () => {
     render(<RegisterForm />)
 
-    // en lugar de hacer click en el botón deshabilitado
+    // forzamos submit del formulario (aunque el botón esté deshabilitado)
     const form = screen.getByTestId('form-registro')
     fireEvent.submit(form)
 
-    // ahora se disparará handleSubmit() y se mostrarán los errores
-    expect(await screen.findByText(/ci es requerido/i)).toBeInTheDocument()
-    expect(screen.getByText(/nombres es requerido/i)).toBeInTheDocument()
+    expect(await screen.findByText(/nombres es requerido/i)).toBeInTheDocument()
     expect(screen.getByText(/apellidos es requerido/i)).toBeInTheDocument()
     expect(screen.getByText(/correo es requerido/i)).toBeInTheDocument()
     expect(screen.getByText(/password es requerido/i)).toBeInTheDocument()
+    // error por confirmación vacía (si tu componente lo muestra)
+    expect(
+      screen.getByText(/confirma tu (password|contraseña)/i)
+    ).toBeInTheDocument()
 
     // email inválido
     await fill(/correo/i, 'correo-sin-dominio')
     fireEvent.submit(screen.getByTestId('form-registro'))
-
     expect(await screen.findByText(/formato.*inv[aá]lido/i)).toBeInTheDocument()
-
 
     // password corto
     await fill(/password/i, '123')
     fireEvent.blur(screen.getByLabelText(/password/i))
-    expect(await screen.findByText(/password debe tener al menos 6 caracteres/i)).toBeInTheDocument()
-    })
+    expect(
+      await screen.findByText(/password debe tener al menos 6 caracteres/i)
+    ).toBeInTheDocument()
 
+    // confirmación no coincide
+    await fill(/password/i, 'secreto')
+    await fill(/confirm(ar)? (password|contraseñ[ao])/i, 'otro')
+    fireEvent.blur(screen.getByLabelText(/confirm(ar)? (password|contraseñ[ao])/i))
+    expect(
+      await screen.findByText(/las contraseñas no coinciden/i)
+    ).toBeInTheDocument()
+  })
 
   it('habilita enviar cuando el formulario es válido y llama a la API con el payload correcto', async () => {
     render(<RegisterForm onSuccess={() => {}} />)
 
-    await fill(/ci/i, '123456')
     await fill(/nombres/i, 'Ana')
     await fill(/apellidos/i, 'Pérez')
     await fill(/correo/i, 'ana@mail.com')
-    await fill(/tel[eé]fono/i, '77445566')
     await fill(/password/i, 'secreto')
+    await fill(/confirm(ar)? (password|contraseñ[ao])/i, 'secreto')
 
     const btn = screen.getByRole('button', { name: /registrar/i })
     expect(btn).toBeEnabled()
 
-    // respuesta OK
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ id_persona: 1 })
@@ -84,16 +94,15 @@ describe('RegisterForm (TDD)', () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringMatching(/\/api\/auth\/register$/),
+        expect.stringMatching(/\/auth\/register$/),
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+          // ✅ sin ci, sin telefono y sin confirmar_password
           body: JSON.stringify({
-            ci: '123456',
             nombres: 'Ana',
             apellidos: 'Pérez',
             correo: 'ana@mail.com',
-            telefono: '77445566',
             password: 'secreto'
           })
         })
@@ -104,13 +113,12 @@ describe('RegisterForm (TDD)', () => {
   it('muestra error del servidor cuando la API responde 409/400 y re-habilita enviar', async () => {
     render(<RegisterForm />)
 
-    await fill(/ci/i, '123')
     await fill(/nombres/i, 'Ana')
     await fill(/apellidos/i, 'Pérez')
     await fill(/correo/i, 'ana@mail.com')
     await fill(/password/i, 'secreto')
+    await fill(/confirm(ar)? (password|contraseñ[ao])/i, 'secreto')
 
-    // respuesta de error 409
     fetchMock.mockResolvedValueOnce({
       ok: false,
       status: 409,
@@ -124,4 +132,3 @@ describe('RegisterForm (TDD)', () => {
     expect(btn).toBeEnabled()
   })
 })
-

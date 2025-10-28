@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import Home from './pages/Home'
 import RegisterForm from './pages/RegisterForm'
-import './RegistroForms.css'
+import './RegisterForms.css'
 
 export default function App() {
   return (

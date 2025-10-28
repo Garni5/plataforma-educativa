@@ -4,7 +4,7 @@ const authService = require("../../services/auth.service");
 jest.mock("../../services/auth.service"); // mock del servicio
 
 describe("Auth Controller", () => {
-  let req, res, next;
+  let req, res;
 
   beforeEach(() => {
     req = {};
@@ -12,7 +12,7 @@ describe("Auth Controller", () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
-    next = jest.fn();
+   
   });
 
   describe("register", () => {

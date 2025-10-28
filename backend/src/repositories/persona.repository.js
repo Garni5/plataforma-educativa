@@ -1,9 +1,11 @@
+// src/repositories/persona.repository.js
+const prisma = require('../prismaClient')
 
-const prisma = require("../prismaClient");
-
-
+/**
+ * Busca una persona por correo (incluye roles y privilegio)
+ */
 async function findByCorreo(correo) {
-  return await prisma.persona.findUnique({
+  return prisma.persona.findUnique({
     where: { correo },
    include: { roles: true },
   });
@@ -11,6 +13,7 @@ async function findByCorreo(correo) {
 
 
 async function createPersona(data) {
+
 
   const existing = await prisma.persona.findFirst({
      where: { correo: data.correo },
@@ -45,7 +48,13 @@ if (!rol) {
     include: { roles: true },
   });
 
-  return persona;
+  return persona
+}
+
+module.exports = {
+  findByCorreo,
+  createPersona,
+  // findByCi eliminado; si algún archivo lo usa, hay que quitar esa llamada
 }
 
 
