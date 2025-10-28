@@ -20,7 +20,7 @@ model persona {
   apellidos  String   @db.VarChar(100)
   correo     String   @db.VarChar(100) @unique
   password   String   @db.VarChar(100)
-  confirmar_password String @db.VarChar(100)
+  
 
   // Relaciones
   roles rol_usuario[]
