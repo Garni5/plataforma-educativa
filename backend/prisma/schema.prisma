@@ -1,0 +1,83 @@
+<<<<<<< HEAD
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+ 
+=======
+generator client {
+  provider = "prisma-client-js"
+>>>>>>> 3c91ee6 (Primer commit base)
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model persona {
+<<<<<<< HEAD
+  id_persona Int      @id @default(autoincrement())
+  ci         String   @db.VarChar(100) @unique
+  nombres    String   @db.VarChar(100)
+  apellidos  String   @db.VarChar(100)
+  correo     String   @db.VarChar(100) @unique
+  telefono   String?  @db.VarChar(100)
+  password   String   @db.VarChar(100)
+
+  // Relaciones
+  roles rol_usuario[]
+}
+
+model rol_usuario {
+  id_rol     Int      @id @default(autoincrement())
+  id_persona Int
+  persona    persona  @relation(fields: [id_persona], references: [id_persona])
+
+  // Relación con privilegio_usuario
+  privilegio privilegio_usuario?
+
+  @@map("rol_usuario") // Por si la tabla en PostgreSQL ya existe con ese nombre
+}
+
+model privilegio_usuario {
+  id_rol           Int      @id
+  nombre_privilegio String  @db.VarChar(100)
+
+  // Relación inversa
+  rol rol_usuario   @relation(fields: [id_rol], references: [id_rol])
+
+  @@map("privilegio_usuario")
+}
+=======
+  id_persona Int           @id @default(autoincrement())
+  ci         String?        @unique @db.VarChar(100)
+  nombres    String        @db.VarChar(100)
+  apellidos  String        @db.VarChar(100)
+  correo     String        @unique @db.VarChar(100)
+  telefono   String?       @db.VarChar(100)
+  password   String        @db.VarChar(100)
+  roles      rol_usuario[]
+}
+
+model rol_usuario {
+  id_rol     Int                 @id @default(autoincrement())
+  id_persona Int
+  privilegio privilegio_usuario?
+  persona    persona             @relation(fields: [id_persona], references: [id_persona])
+
+  @@map("rol_usuario")
+}
+
+model privilegio_usuario {
+  id_rol            Int         @id
+  nombre_privilegio String      @db.VarChar(100)
+  rol               rol_usuario @relation(fields: [id_rol], references: [id_rol])
+
+  @@map("privilegio_usuario")
+}
+>>>>>>> 3c91ee6 (Primer commit base)

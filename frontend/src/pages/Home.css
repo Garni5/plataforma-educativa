@@ -1,0 +1,104 @@
+/* Asegúrate de que .container ocupe todo el alto y ancho */
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Lado izquierdo (formulario) */
+.left {
+  width: 50%;
+  background-color: #2d1a47;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.form-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 350px; /* Ajusta el tamaño máximo */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.form-box h2 {
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-box input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #bbb;
+  padding: 10px;
+  margin: 12px 0;
+  outline: none;
+  font-size: 14px;
+}
+
+.form-box button {
+  width: 100%;
+  background: #2d1a47;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s ease;
+}
+
+.form-box button:hover {
+  background: #432d6b;
+}
+
+.form-box .register {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.form-box .register a {
+  text-decoration: none;
+  color: red;
+}
+
+.mensaje {
+  margin-top: 15px;
+  font-size: 13px;
+  color: #555;
+}
+
+/* Lado derecho (imagen) */
+.right {
+  width: 50%;
+  position: relative;
+  background: url("https://source.unsplash.com/600x800/?programming,code") no-repeat center center;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.right .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.right h1 {
+  position: relative;
+  color: #fff;
+  font-size: 38px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.4;
+  padding: 20px;
+  margin: 0;
+}

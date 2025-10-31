@@ -1,0 +1,156 @@
+/* ====== Tema / base ====== */
+:root{
+  --primary:#2f1b6c;     /* morado header/botón */
+  --primary-700:#26155a; /* hover */
+  --track:#d1d5db;       /* gris barra de progreso */
+  --text:#1f2937;        /* gris oscuro */
+  --muted:#9ca3af;       /* placeholder/bordes */
+  --danger:#b91c1c;
+  --radius:10px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto; color:var(--text); }
+
+/* ====== Topbar (opcional) ====== */
+.topbar{
+  height:56px;
+  background:var(--primary);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 28px;
+  font-weight:600;
+}
+.topbar .nav{
+  display:flex; gap:24px;
+}
+.topbar .nav a{
+  color:#fff; text-decoration:none; font-weight:500;
+}
+.topbar .nav a:hover{ text-decoration:underline; }
+.topbar .nav a.active { text-decoration: underline; }
+
+/* ====== Layout de página de registro ====== */
+.register-page{
+  max-width: 720px;
+  margin: 0 auto;
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+.register-title{
+  text-align:center;
+  font-size:28px;
+  font-weight:700;
+  margin:8px 0 16px;
+  color:var(--primary);
+}
+
+/* ====== Barra de progreso ====== */
+.progress{
+  height:8px;
+  width:100%;
+  background:var(--track);
+  border-radius:999px;
+  overflow:hidden;
+  margin:12px auto 28px;
+}
+.progress .bar{
+  height:100%;
+  width:50%; /* Ajusta el % según el progreso actual */
+  background:var(--primary);
+}
+
+/* ====== Formulario ====== */
+.register-form{
+  max-width:480px;
+  margin:0 auto;
+  display:grid;
+  gap:18px;
+}
+
+.field{ display:grid; gap:6px; }
+
+/* Label y ayuda */
+.field label{
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+}
+
+/* Inputs subrayados */
+.input-underline{
+  width:100%;
+  padding:10px 4px 12px;
+  border:none;
+  border-bottom:1px solid var(--muted);
+  background:transparent;
+  outline:none;
+  font-size:14px;
+}
+.input-underline::placeholder{ color:var(--muted); }
+.input-underline:focus{
+  border-bottom-color:var(--primary);
+  box-shadow:0 2px 0 0 var(--primary);
+}
+
+/* Icono “ojo” en password (decorativo) */
+.input-with-eye{
+  background-image: radial-gradient(circle at right 12px center, transparent 12px, var(--muted) 13px, var(--muted) 14px, transparent 15px);
+  background-repeat:no-repeat;
+  background-position:right 8px center;
+  padding-right:36px;
+}
+
+/* Checkboxes redondos estilo mockup */
+.checkbox{
+  display:flex; align-items:center; gap:10px;
+  font-size:14px; color:#111827;
+}
+.checkbox input[type="checkbox"]{
+  appearance:none; -webkit-appearance:none;
+  width:18px; height:18px; border-radius:50%;
+  border:2px solid #111;
+  display:grid; place-items:center;
+  background:#fff;
+}
+.checkbox input[type="checkbox"]:checked{
+  background:
+    radial-gradient(#111 6px, transparent 7px);
+}
+
+/* Mensajes */
+.error{ color:var(--danger); font-size:12px; }
+
+/* Botón grande morado */
+.btn-primary{
+  margin-top:12px;
+  width:100%; /* Hacer el botón de ancho completo */
+  padding:12px 18px;
+  border:none;
+  border-radius:var(--radius);
+  background:var(--primary);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+.btn-primary:hover{ background:var(--primary-700); }
+.btn-primary:disabled{
+  background:#e5e7eb; color:#9ca3af; cursor:not-allowed;
+}
+
+/* Barra de progreso ajustable */
+.progress{
+  margin-bottom: 30px;  /* Espaciado adecuado entre los elementos */
+  width: 100%;
+}
+
+.register-form input[type="submit"]{
+  width: 100%;
+  padding: 12px;
+}
