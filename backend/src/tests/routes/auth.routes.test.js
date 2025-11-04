@@ -1,5 +1,6 @@
 // tests/routes/auth.routes.test.js
 
+
 // 🔹 Mock de middlewares antes de importar app
 jest.mock("../../middleware/auth.middleware", () => ({
   authenticateJWT: (req, res, next) => next()
