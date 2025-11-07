@@ -1,0 +1,141 @@
+// LoginForm.test.tsx
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  vi,
+  type Mock,
+} from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import LoginForm from './LoginForm'
+
+// helper: acepta string o RegExp
+const fill = async (label: string | RegExp, value: string) => {
+  const input = await screen.findByLabelText(label, { selector: 'input' })
+  fireEvent.change(input, { target: { value } })
+  return input
+}
+
+let fetchMock: Mock
+beforeEach(() => {
+  fetchMock = vi.fn()
+  vi.stubGlobal('fetch', fetchMock)
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+describe('LoginForm (TDD) - login con correo y password', () => {
+  it('renderiza campos y el botón Login está deshabilitado al inicio', () => {
+    render(<LoginForm />)
+
+    // Campos principales
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+
+    // Botón de login deshabilitado
+    expect(screen.getByRole('button', { name: /login/i })).toBeDisabled()
+
+    // Link o texto para ir a registro (opcional, según tu diseño)
+    expect(screen.getByText(/register/i)).toBeInTheDocument()
+  })
+
+  it('muestra errores de validación cuando faltan datos o son inválidos', async () => {
+    render(<LoginForm />)
+
+    // forzar submit del formulario (aunque el botón esté deshabilitado)
+    const form = screen.getByTestId('form-login')
+    fireEvent.submit(form)
+
+    expect(
+      await screen.findByText(/correo es requerido/i)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/password es requerido/i)
+    ).toBeInTheDocument()
+
+    // email inválido
+    await fill(/email/i, 'correo-sin-dominio')
+    fireEvent.submit(screen.getByTestId('form-login'))
+    expect(
+      await screen.findByText(/formato de correo inv[aá]lido/i)
+    ).toBeInTheDocument()
+
+    // password muy corto
+    await fill(/password/i, '123')
+    fireEvent.blur(screen.getByLabelText(/password/i))
+    expect(
+      await screen.findByText(/password debe tener al menos 6 caracteres/i)
+    ).toBeInTheDocument()
+  })
+
+  it('habilita Login cuando el formulario es válido y llama a la API con el payload correcto', async () => {
+    const onSuccess = vi.fn()
+    render(<LoginForm onSuccess={onSuccess} />)
+
+    await fill(/email/i, 'ana@mail.com')
+    await fill(/password/i, 'secreto')
+
+    const btn = screen.getByRole('button', { name: /login/i })
+    expect(btn).toBeEnabled()
+
+    // respuesta fake del backend
+    const fakeResponse = {
+      success: true,
+      data: { persona: { id_persona: 1 }, token: 'abc123' },
+      message: 'Usuario autenticado correctamente',
+    }
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => fakeResponse,
+    } as Response)
+
+    fireEvent.click(btn)
+
+    // verifica llamada a /auth/login
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringMatching(/\/auth\/login$/),
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+          body: JSON.stringify({
+            login: 'ana@mail.com', // el backend espera "login"
+            password: 'secreto',
+          }),
+        }),
+      )
+    })
+
+    // verifica que se llame el callback de éxito
+    expect(onSuccess).toHaveBeenCalledWith(fakeResponse)
+  })
+
+  it('muestra error del servidor cuando la API responde 401/400 y re-habilita Login', async () => {
+    render(<LoginForm />)
+
+    await fill(/email/i, 'ana@mail.com')
+    await fill(/password/i, 'secreto')
+
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: 'Credenciales inválidas' }),
+    } as Response)
+
+    const btn = screen.getByRole('button', { name: /login/i })
+    fireEvent.click(btn)
+
+    expect(
+      await screen.findByText(/credenciales inv[aá]lidas/i),
+    ).toBeInTheDocument()
+    expect(btn).toBeEnabled()
+  })
+})

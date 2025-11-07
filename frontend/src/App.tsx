@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import Home from './pages/Home'
 import RegisterForm from './pages/RegisterForm'
+import LoginForm from './pages/LoginForm'
 import './RegisterForms.css'
 
 export default function App() {
@@ -15,6 +16,9 @@ export default function App() {
           <NavLink to="/register" className={({isActive}) => isActive ? 'active' : ''}>
             Registro
           </NavLink>
+          <NavLink to="/login" className={({ isActive }) => (isActive ? 'active' : '')}>
+            Login
+          </NavLink>
         </div>
       </nav>
 
@@ -25,6 +29,10 @@ export default function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/register" element={<RegisterForm onSuccess={(d)=>console.log('OK', d)} />} />
           {/* opcional: 404 */}
+          <Route
+            path="/login"
+            element={<LoginForm onSuccess={(d) => console.log('Login OK', d)} />}
+          />
           <Route path="*" element={<Navigate to="/register" replace />} />
         </Routes>
       </main>
