@@ -2,7 +2,14 @@ import { useState } from 'react'
 import '../LoginForm.css'
 
 interface LoginFormProps {
-  onSuccess?: (data: any) => void
+  onSuccess?: (data: LoginResponse) => void
+}
+
+// Define una interfaz para la respuesta que esperas del backend
+interface LoginResponse {
+  token: string
+  persona: { id_persona: number }
+  message: string
 }
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
@@ -14,6 +21,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     server?: string
   }>({})
   const [loading, setLoading] = useState(false)
+  const fieldsAreFilled = email && password
 
   const validate = () => {
     const newErrors: typeof errors = {}
@@ -47,18 +55,21 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       if (!res.ok) throw new Error(data.message || 'Error de autenticación')
 
       onSuccess?.(data)
-    } catch (err: any) {
-      setErrors({ server: err.message })
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrors({ server: err.message })
+      } else {
+        setErrors({ server: 'Error desconocido' })
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const isValid = email && password && Object.keys(errors).length === 0
+
 
   return (
     <div className="login-layout">
-      {/* Lado izquierdo: fondo morado + tarjeta */}
       <div className="login-left">
         <div className="login-brand">Plataforma Educativa Programacion Python</div>
 
@@ -91,17 +102,24 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               onChange={(e) => setPassword(e.target.value)}
             />
             {errors.password && (
-              <small className="error">{errors.password}</small>
+              <small className="error" role="alert">
+                {errors.password}
+              </small>
             )}
           </div>
 
           {errors.server && (
-            <div className="server-error">{errors.server}</div>
+            <div className="server-error" role="alert">
+              {errors.server}
+            </div>
           )}
 
           <button
             type="submit"
-            disabled={!isValid || loading}
+            // El botón está deshabilitado si:
+            // 1. Está cargando (loading)
+            // 2. O si los campos requeridos NO están llenos (!fieldsAreFilled)
+            disabled={loading || !fieldsAreFilled} 
             className="btn-login"
           >
             {loading ? 'Cargando...' : 'Login'}
@@ -113,7 +131,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         </form>
       </div>
 
-      {/* Lado derecho: imagen + texto grande */}
       <div className="login-right">
         <div className="login-hero-overlay">
           <h2>Plataforma</h2>

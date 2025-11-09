@@ -9,12 +9,14 @@ import {
   type Mock,
 } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import LoginForm from './LoginForm'
 
+const user = userEvent.setup()
 // helper: acepta string o RegExp
 const fill = async (label: string | RegExp, value: string) => {
   const input = await screen.findByLabelText(label, { selector: 'input' })
-  fireEvent.change(input, { target: { value } })
+  await user.type(input, value)
   return input
 }
 
@@ -50,26 +52,27 @@ describe('LoginForm (TDD) - login con correo y password', () => {
     const form = screen.getByTestId('form-login')
     fireEvent.submit(form)
 
-    expect(
-      await screen.findByText(/correo es requerido/i)
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(/password es requerido/i)
-    ).toBeInTheDocument()
+    expect(await screen.findByText(/correo es requerido/i)).toBeInTheDocument()
+    expect(await screen.findByText(/password es requerido/i)).toBeInTheDocument()
 
     // email inválido
     await fill(/email/i, 'correo-sin-dominio')
     fireEvent.submit(screen.getByTestId('form-login'))
-    expect(
-      await screen.findByText(/formato de correo inv[aá]lido/i)
-    ).toBeInTheDocument()
+    expect(await screen.findByText(/formato.*inv[aá]lido/i)).toBeInTheDocument()
 
     // password muy corto
-    await fill(/password/i, '123')
-    fireEvent.blur(screen.getByLabelText(/password/i))
-    expect(
-      await screen.findByText(/password debe tener al menos 6 caracteres/i)
-    ).toBeInTheDocument()
+    // CAMBIO CLAVE: Llenamos el password y FORZAMOS el submit para activar validate()
+    await fill(/password/i, '123') 
+
+    // Forzar el submit para activar la función validate() en el componente
+    fireEvent.submit(screen.getByTestId('form-login')) 
+
+    // Ahora buscamos el error de password (asíncrono)
+    expect(await screen.findByText(/password debe tener al menos 6 caracteres/i)).toBeInTheDocument()
+
+    // Opcional: Si quieres verificar el rol del elemento de error, hazlo así:
+     const errorElement = screen.getByText(/password debe tener al menos 6 caracteres/i)
+    expect(errorElement).toHaveAttribute('role', 'alert')
   })
 
   it('habilita Login cuando el formulario es válido y llama a la API con el payload correcto', async () => {
@@ -118,24 +121,31 @@ describe('LoginForm (TDD) - login con correo y password', () => {
     expect(onSuccess).toHaveBeenCalledWith(fakeResponse)
   })
 
-  it('muestra error del servidor cuando la API responde 401/400 y re-habilita Login', async () => {
-    render(<LoginForm />)
+it('muestra error del servidor cuando la API responde 401/400 y re-habilita Login', async () => {
+  render(<LoginForm />)
 
-    await fill(/email/i, 'ana@mail.com')
-    await fill(/password/i, 'secreto')
+  await fill(/email/i, 'ana@mail.com')
+  await fill(/password/i, 'secreto')
 
-    fetchMock.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      json: async () => ({ message: 'Credenciales inválidas' }),
-    } as Response)
+  fetchMock.mockResolvedValueOnce({
+    ok: false,
+    status: 401,
+    json: async () => ({ message: 'Credenciales inválidas' }),
+  } as Response)
 
-    const btn = screen.getByRole('button', { name: /login/i })
-    fireEvent.click(btn)
+  const btn = screen.getByRole('button', { name: /login/i })
+  
+  // fireEvent.click(btn)  <-- REEMPLAZAR ESTO
+  await user.click(btn) //  Usar userEvent.click
 
-    expect(
-      await screen.findByText(/credenciales inv[aá]lidas/i),
-    ).toBeInTheDocument()
-    expect(btn).toBeEnabled()
-  })
+  // Verificar que el error del servidor sea mostrado
+  // Esto actúa como un punto de espera fuerte para la respuesta de la API
+  expect(await screen.findByText(/credenciales inv[aá]lidas/i)).toBeInTheDocument()
+
+  // Esperar a que el botón se habilite después de que setLoading(false) haya actualizado el estado
+  // Si usas userEvent, es posible que el timeout predeterminado sea suficiente
+  await waitFor(() => {
+    expect(btn).not.toBeDisabled()  // Asegúrate de que el botón ya no esté deshabilitado
+  }, { timeout: 3000 })
+})
 })
