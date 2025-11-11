@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cliente WebSocket</title>
+</head>
+<body>
+  <h2>Conexión WebSocket</h2>
+  <input id="msg" placeholder="Mensaje" />
+  <button onclick="enviar()">Enviar</button>
+  <div id="chat"></div>
+
+  <script>
+    const socket = new WebSocket('ws://localhost:3000');
+
+    socket.onopen = () => {
+      document.getElementById('chat').innerHTML += '<p>✅ Conectado</p>';
+    };
+
+    socket.onmessage = (event) => {
+      document.getElementById('chat').innerHTML += `<p>${event.data}</p>`;
+    };
+
+    function enviar() {
+      const msg = document.getElementById('msg').value;
+      socket.send(msg);
+    }
+  </script>
+</body>
+</html>
