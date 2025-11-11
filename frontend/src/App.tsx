@@ -1,39 +1,98 @@
-import { Routes, Route, Navigate, NavLink } from 'react-router-dom'
+import {
+  Routes,
+  Route,
+  Navigate,
+  NavLink,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 import Home from './pages/Home'
 import RegisterForm from './pages/RegisterForm'
 import LoginForm from './pages/LoginForm'
+import AdminPage from './pages/AdminPage'
+import ProfesorEditorPage from './pages/ProfesorEditorPage'
 import './RegisterForms.css'
 
 export default function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Detectar la ruta actual
+  const isAdminRoute = location.pathname.startsWith('/admin')
+  const isEditorRoute = location.pathname.startsWith('/profesor-editor')
+
+  const handleLogout = () => {
+    // Limpia token o sesión si lo usas
+    localStorage.removeItem('token')
+    navigate('/login', { replace: true })
+  }
+
   return (
     <>
       <nav className="topbar">
         <span>Plataforma</span>
+
         <div className="nav">
-          <NavLink to="/home" className={({isActive}) => isActive ? 'active' : ''}>
-            Home
-          </NavLink>
-          <NavLink to="/register" className={({isActive}) => isActive ? 'active' : ''}>
-            Registro
-          </NavLink>
-          <NavLink to="/login" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Login
-          </NavLink>
+          {isAdminRoute ? (
+            <>
+              <span>Soy admin</span>
+              <button className="logout-button" onClick={handleLogout}>
+                Cerrar sesión
+              </button>
+            </>
+          ) : isEditorRoute ? (
+            <>
+              <span>Soy profesor editor</span>
+              <button className="logout-button" onClick={handleLogout}>
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <NavLink
+                to="/home"
+                className={({ isActive }) => (isActive ? 'active' : '')}
+              >
+                Home
+              </NavLink>
+              <NavLink
+                to="/register"
+                className={({ isActive }) => (isActive ? 'active' : '')}
+              >
+                Registro
+              </NavLink>
+              <NavLink
+                to="/login"
+                className={({ isActive }) => (isActive ? 'active' : '')}
+              >
+                Login
+              </NavLink>
+            </>
+          )}
         </div>
       </nav>
 
       <main>
-        {/* App inicia en / y redirige a /register */}
         <Routes>
-          <Route path="/" element={<Navigate to="/register" replace />} />
+          {/* Raíz redirige al Login */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
           <Route path="/home" element={<Home />} />
-          <Route path="/register" element={<RegisterForm onSuccess={(d)=>console.log('OK', d)} />} />
-          {/* opcional: 404 */}
+          <Route
+            path="/register"
+            element={<RegisterForm onSuccess={(d) => console.log('OK', d)} />}
+          />
           <Route
             path="/login"
             element={<LoginForm onSuccess={(d) => console.log('Login OK', d)} />}
           />
-          <Route path="*" element={<Navigate to="/register" replace />} />
+
+          {/*  Rutas según el rol */}
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/profesor-editor" element={<ProfesorEditorPage />} />
+
+          {/* 404 */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </main>
     </>

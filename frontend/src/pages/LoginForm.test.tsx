@@ -95,7 +95,7 @@ describe('LoginForm (TDD) - login con correo y password', () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => fakeResponse,
+      text: async () => JSON.stringify(fakeResponse),
     } as Response)
 
     fireEvent.click(btn)
@@ -128,10 +128,11 @@ it('muestra error del servidor cuando la API responde 401/400 y re-habilita Logi
   await fill(/password/i, 'secreto')
 
   fetchMock.mockResolvedValueOnce({
-    ok: false,
-    status: 401,
-    json: async () => ({ message: 'Credenciales inválidas' }),
+  ok: false,
+  status: 401,
+  text: async () => JSON.stringify({ message: 'Credenciales inválidas', success: false }),
   } as Response)
+
 
   const btn = screen.getByRole('button', { name: /login/i })
   
@@ -140,7 +141,9 @@ it('muestra error del servidor cuando la API responde 401/400 y re-habilita Logi
 
   // Verificar que el error del servidor sea mostrado
   // Esto actúa como un punto de espera fuerte para la respuesta de la API
-  expect(await screen.findByText(/credenciales inv[aá]lidas/i)).toBeInTheDocument()
+  await waitFor(() => {
+    expect(screen.getByText(/credenciales inv[aá]lidas/i)).toBeInTheDocument()
+  }, { timeout: 3000 })
 
   // Esperar a que el botón se habilite después de que setLoading(false) haya actualizado el estado
   // Si usas userEvent, es posible que el timeout predeterminado sea suficiente

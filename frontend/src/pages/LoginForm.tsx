@@ -5,10 +5,23 @@ interface LoginFormProps {
   onSuccess?: (data: LoginResponse) => void
 }
 
-// Define una interfaz para la respuesta que esperas del backend
-interface LoginResponse {
+interface PersonaResponse {
+  id_persona: number
+  nombres: string
+  apellidos: string
+  correo: string
+  privilegio: string
+}
+
+interface BackendLoginData {
   token: string
-  persona: { id_persona: number }
+  persona: PersonaResponse
+}
+
+// Respuesta completa del backend
+interface LoginResponse {
+  success: boolean
+  data: BackendLoginData
   message: string
 }
 
@@ -38,40 +51,66 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrors({})
-    if (!validate()) return
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setErrors({})
+  if (!validate()) return
 
-    setLoading(true)
+  setLoading(true)
+  try {
+    const res = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login: email, password }),
+    })
+
+    // 👇 Leemos primero como texto para ver qué llega
+    const text = await res.text()
+    console.log('Respuesta cruda del backend:', text)
+
+    let data: LoginResponse
     try {
-      const res = await fetch('http://localhost:3000/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login: email, password }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'Error de autenticación')
-
-      onSuccess?.(data)
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setErrors({ server: err.message })
-      } else {
-        setErrors({ server: 'Error desconocido' })
-      }
-    } finally {
-      setLoading(false)
+      data = JSON.parse(text)
+    } catch {
+      // Aquí sabemos que vino HTML (por eso el '<!DOCTYPE ...')
+      throw new Error(
+        'El backend no está devolviendo JSON. Revisa la URL o el puerto (debería ser http://localhost:3000/api/auth/login).'
+      )
     }
-  }
 
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Error de autenticación')
+    }
+
+    onSuccess?.(data)
+
+    const { persona } = data.data
+
+    if (persona.privilegio === 'admin') {
+      window.location.href = '/admin'
+    } else if (persona.privilegio === 'editor') {
+      window.location.href = '/profesor-editor'
+    } else {
+      window.location.href = '/'
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      setErrors({ server: err.message })
+    } else {
+      setErrors({ server: 'Error desconocido' })
+    }
+  } finally {
+    setLoading(false)
+  }
+}
 
 
   return (
     <div className="login-layout">
       <div className="login-left">
-        <div className="login-brand">Plataforma Educativa Programacion Python</div>
+        <div className="login-brand">
+          Plataforma Educativa Programacion Python
+        </div>
 
         <form
           className="login-form"
@@ -116,10 +155,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
           <button
             type="submit"
-            // El botón está deshabilitado si:
-            // 1. Está cargando (loading)
-            // 2. O si los campos requeridos NO están llenos (!fieldsAreFilled)
-            disabled={loading || !fieldsAreFilled} 
+            disabled={loading || !fieldsAreFilled}
             className="btn-login"
           >
             {loading ? 'Cargando...' : 'Login'}
