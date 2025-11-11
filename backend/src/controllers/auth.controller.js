@@ -1,15 +1,12 @@
 const passport = require("passport");
 const authService = require("../services/auth.service");
-
+require("dotenv").config();
 //registro sin google
 async function register(req, res) {
-  try {
-    
-    const persona = await authService.registerPersona(req.body);
-    
+  try {    
+    const persona = await authService.registerPersona(req.body);    
     res.status(201).json({
-      success: true,
-      data: persona,
+      success: true,    
       message: "Usuario registrado correctamente"
     });
   } catch (err) {
@@ -19,6 +16,30 @@ async function register(req, res) {
     });
   }
 }
+const logout = (req, res, next) => {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    // Cierra la sesión de Passport
+    req.logout(err => {
+      if (err) return next(err);
+
+      // Destruye la sesión de Express
+      req.session.destroy(err => {
+        if (err) return next(err);
+
+        // Limpia la cookie de sesión en el navegador
+        res.clearCookie("connect.sid", { path: "/" });
+
+        // Responde al frontend
+        return res.status(200).json({ success: true, message: "Sesión cerrada correctamente" });
+      });
+    });
+  } else {
+    // No había sesión
+    return res.status(200).json({ success: true, message: "No había sesión activa" });
+  }
+};
+
+module.exports = { logout };
 
 //login sin google
 async function login(req, res) {
@@ -27,7 +48,7 @@ async function login(req, res) {
     const result = await authService.loginPersona(login, password);
     res.status(200).json({
       success: true,
-      data: result,
+      token: result.token,
       message: "Usuario autenticado correctamente"
     });
   } catch (err) {
@@ -39,13 +60,17 @@ async function login(req, res) {
 }
 
 // Google
-const googleLogin = passport.authenticate("google", { scope: ["profile", "email"] });
+const googleLogin = passport.authenticate("google", { 
+  scope: ["profile", "email"],
+  prompt: "select_account"
+});
+
 const googleCallback = (req, res, next) => {
   passport.authenticate("google", (err, user) => {
-    if (err || !user) return res.status(401).json({ error: "Error autenticando Google" });
-
- 
-    res.json({ jwt:user.token, user });
+    if (err || !user) 
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=google`);
+    
+    res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?token=${user.token}`);
   })(req, res, next);
 };
 
@@ -53,6 +78,7 @@ const googleCallback = (req, res, next) => {
 const microsoftLogin = passport.authenticate("azure_ad_oauth2");
 const microsoftCallback = (req, res) => {
   const token = generateJWT(req.user);
+  console.log(token);
   res.json({ jwt: token, user: req.user });
 };
 
@@ -62,5 +88,6 @@ module.exports = {
   microsoftLogin,
   microsoftCallback,
   register,
-  login
+  login,
+  logout
 };

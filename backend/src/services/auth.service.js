@@ -50,14 +50,10 @@ async function loginPersona(login, password) {
 // 🔹 Nuevo: para login social (Google o Microsoft)
 async function loginSocial(correo, nombres,apellidos) {
   let persona = await prisma.persona.findFirst({ where: { correo } });
-  console.log("🚀 ~ file: auth.service.js ~ line 41 ~ loginSocial ~ persona", persona)
-  console.log(persona);
-  console.log(correo);
-  console.log(nombres);
-  console.log(apellidos);
+ 
 
   if (!persona) {
-    console.log('entra cuando no hay persona');
+   
    try {
   persona = await prisma.persona.create({
     data: { correo, nombres, apellidos, telefono: null, password: null },
@@ -67,12 +63,13 @@ async function loginSocial(correo, nombres,apellidos) {
   throw err;
 }
   }
-  console.log(persona);
+
   const token = jwt.sign(
     { id_persona: persona.id_persona, correo: persona.correo },
     JWT_SECRET,
     { expiresIn: "1h" }
   );
+  console.log(token);
 
   return { persona, token };
 }
