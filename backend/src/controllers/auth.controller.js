@@ -1,9 +1,12 @@
-
+const passport = require("passport");
 const authService = require("../services/auth.service");
 
+//registro sin google
 async function register(req, res) {
   try {
+    
     const persona = await authService.registerPersona(req.body);
+    
     res.status(201).json({
       success: true,
       data: persona,
@@ -17,6 +20,7 @@ async function register(req, res) {
   }
 }
 
+//login sin google
 async function login(req, res) {
   try {
     const { login, password } = req.body; 
@@ -34,4 +38,29 @@ async function login(req, res) {
   }
 }
 
-module.exports = { register, login };
+// Google
+const googleLogin = passport.authenticate("google", { scope: ["profile", "email"] });
+const googleCallback = (req, res, next) => {
+  passport.authenticate("google", (err, user) => {
+    if (err || !user) return res.status(401).json({ error: "Error autenticando Google" });
+
+ 
+    res.json({ jwt:user.token, user });
+  })(req, res, next);
+};
+
+// Microsoft
+const microsoftLogin = passport.authenticate("azure_ad_oauth2");
+const microsoftCallback = (req, res) => {
+  const token = generateJWT(req.user);
+  res.json({ jwt: token, user: req.user });
+};
+
+module.exports = {
+  googleLogin,
+  googleCallback,
+  microsoftLogin,
+  microsoftCallback,
+  register,
+  login
+};

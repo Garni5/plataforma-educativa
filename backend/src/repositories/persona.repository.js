@@ -1,62 +1,61 @@
+// src/repositories/persona.repository.js
+const prisma = require('../prismaClient')
 
-const prisma = require("../prismaClient");
-
-
+/**
+ * Busca una persona por correo (incluye roles y privilegio)
+ */
 async function findByCorreo(correo) {
-  return await prisma.persona.findUnique({
+  return prisma.persona.findUnique({
     where: { correo },
-    include: { roles: { include: { privilegio: true } } },
+   include: { roles: true },
   });
 }
-async function findByCi(ci) {
-  return await prisma.persona.findUnique({
-    where: { ci },
-    include: {
-      roles: {
-        include: { privilegio: true }
-      }
-    }
-  });
-}
+
 
 async function createPersona(data) {
 
+
   const existing = await prisma.persona.findFirst({
-    where: { OR: [{ ci: data.ci }, { correo: data.correo }] },
+     where: { correo: data.correo },
   });
-  if (existing) throw new Error("El usuario con este CI o correo ya existe");
+  if (existing) throw new Error("El usuario con este correo ya existe");
 
-  
+ 
+  // Si el rol ya existe, conectarlo, si no, crearlo
+const rolNombre = data.nombre_privilegio || "ESTUDIANTE";
 
+let rol = await prisma.privilegio_usuario.findFirst({
+  where: { nombre_privilegio: rolNombre },
+});
+
+if (!rol) {
+  rol = await prisma.privilegio_usuario.create({
+    data: { nombre_privilegio: rolNombre },
+  });
+}
 
   const persona = await prisma.persona.create({
     data: {
-      ci: data.ci,
       nombres: data.nombres,
       apellidos: data.apellidos,
       correo: data.correo,
       telefono: data.telefono,
       password: data.password,
       roles: {
-        create: [
-          {
-            privilegio: {
-              create: {
-                nombre_privilegio: data.nombre_privilegio || "usuario_normal",
-              },
-            },
-          },
-        ],
+        connect: { id_rol: rol.id_rol },
       },
     },
-    include: {
-      roles: {
-        include: { privilegio: true },
-      },
-    },
+    include: { roles: true },
   });
 
-  return persona;
+  return persona
 }
 
-module.exports = { findByCorreo, createPersona, findByCi };
+module.exports = {
+  findByCorreo,
+  createPersona,
+  // findByCi eliminado; si algún archivo lo usa, hay que quitar esa llamada
+}
+
+
+module.exports = { findByCorreo, createPersona };

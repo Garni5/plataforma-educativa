@@ -4,7 +4,12 @@
   "description": "hola mundo",
   "main": "index.js",
   "scripts": {
+<<<<<<< HEAD
     "test": "jest --coverage",
+=======
+    "lint": "eslint . --ext .js",
+    "test": "jest",
+>>>>>>> 93be5b2fd2d9c13544efad248ba5371531035f85
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
@@ -14,8 +19,13 @@
     "@prisma/client": "^6.16.3",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "express-session": "^1.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.7.0",
+    "passport-azure-ad-oauth2": "^0.0.4",
+    "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
@@ -23,8 +33,11 @@
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "eslint": "^9.37.0",
+    "eslint-plugin-jest": "^29.0.1",
     "globals": "^16.4.0",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.10",
-    "prisma": "^6.16.3"
+    "prisma": "^6.16.3",
+    "supertest": "^7.1.4"
   }
 }

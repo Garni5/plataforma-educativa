@@ -1,4 +1,3 @@
-
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const personaRepo = require("../repositories/persona.repository");
@@ -7,44 +6,40 @@ const prisma = require("../prismaClient");
 const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 
 async function registerPersona(data) {
-
+  console.log("sldkjfasd");
   const existing = await prisma.persona.findFirst({
-    where: { OR: [{ ci: data.ci }, { correo: data.correo }] },
+    where: { correo: data.correo },
   });
-  if (existing) throw { status: 409, message: "El usuario con este CI o correo ya existe" };
-
+  console.log(existing);
+  if (existing) throw { status: 409, message: "El usuario con este  correo ya existe" };
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
-
-
   const persona = await personaRepo.createPersona({ ...data, password: hashedPassword });
   return persona;
 }
 
 async function loginPersona(login, password) {
+  // Buscar usuario y traer roles
   const persona = await prisma.persona.findFirst({
-    where: { OR: [{ correo: login }, { ci: login }] },
-    include: {
-      roles: { include: { privilegio: true } },
-    },
+    where: { correo: login },
+    include: { roles: true }, // Solo include roles directamente
   });
 
   if (!persona) throw { status: 404, message: "Usuario no encontrado" };
 
+  // Verificar contraseña
   const valid = await bcrypt.compare(password, persona.password);
   if (!valid) throw { status: 401, message: "Contraseña incorrecta" };
 
-  const roles = persona.roles.map((r) => ({
+  // Mapear roles para el JWT
+  const roles = persona.roles.map(r => ({
     id_rol: r.id_rol,
-    nombre_privilegio: r.privilegio?.nombre_privilegio || null,
+    nombre_privilegio: r.nombre_privilegio, // ya no usamos privilegio?.nombre_privilegio
   }));
 
+  // Generar token
   const token = jwt.sign(
-    {
-      id_persona: persona.id_persona,
-      correo: persona.correo,
-      roles,
-    },
+    { id_persona: persona.id_persona, correo: persona.correo, roles },
     JWT_SECRET,
     { expiresIn: "1h" }
   );
@@ -52,4 +47,34 @@ async function loginPersona(login, password) {
   return { persona, token };
 }
 
-module.exports = { registerPersona, loginPersona };
+// 🔹 Nuevo: para login social (Google o Microsoft)
+async function loginSocial(correo, nombres,apellidos) {
+  let persona = await prisma.persona.findFirst({ where: { correo } });
+  console.log("🚀 ~ file: auth.service.js ~ line 41 ~ loginSocial ~ persona", persona)
+  console.log(persona);
+  console.log(correo);
+  console.log(nombres);
+  console.log(apellidos);
+
+  if (!persona) {
+    console.log('entra cuando no hay persona');
+   try {
+  persona = await prisma.persona.create({
+    data: { correo, nombres, apellidos, telefono: null, password: null },
+  });
+} catch (err) {
+  console.error("❌ Error creando persona:", err);
+  throw err;
+}
+  }
+  console.log(persona);
+  const token = jwt.sign(
+    { id_persona: persona.id_persona, correo: persona.correo },
+    JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  return { persona, token };
+}
+
+module.exports = { registerPersona, loginPersona, loginSocial };

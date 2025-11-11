@@ -41,7 +41,7 @@ html,body{ margin:0; padding:0; font-family:"Poppins",system-ui,-apple-system,Se
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 24px; /* deja respiración lateral */
+  padding: 24px;
 }
 .register-title{
   text-align:center;
@@ -62,7 +62,7 @@ html,body{ margin:0; padding:0; font-family:"Poppins",system-ui,-apple-system,Se
 }
 .progress .bar{
   height:100%;
-  width:28%;                /* ajusta el % según el paso */
+  width:50%; /* Ajusta el % según el progreso actual */
   background:var(--primary);
 }
 
@@ -130,7 +130,7 @@ html,body{ margin:0; padding:0; font-family:"Poppins",system-ui,-apple-system,Se
 /* Botón grande morado */
 .btn-primary{
   margin-top:12px;
-  width:240px; justify-self:center;
+  width:100%; /* Hacer el botón de ancho completo */
   padding:12px 18px;
   border:none;
   border-radius:var(--radius);
@@ -142,4 +142,15 @@ html,body{ margin:0; padding:0; font-family:"Poppins",system-ui,-apple-system,Se
 .btn-primary:hover{ background:var(--primary-700); }
 .btn-primary:disabled{
   background:#e5e7eb; color:#9ca3af; cursor:not-allowed;
+}
+
+/* Barra de progreso ajustable */
+.progress{
+  margin-bottom: 30px;  /* Espaciado adecuado entre los elementos */
+  width: 100%;
+}
+
+.register-form input[type="submit"]{
+  width: 100%;
+  padding: 12px;
 }
