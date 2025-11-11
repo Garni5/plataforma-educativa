@@ -10,7 +10,7 @@ import Home from './pages/Home'
 import RegisterForm from './pages/RegisterForm'
 import LoginForm from './pages/LoginForm'
 import AdminPage from './pages/AdminPage'
-import ProfesorEditorPage from './pages/ProfesorEditorPage'
+import ProfesorEditorPage from './feature/topico/components/ProfesorEditorPage'
 import './RegisterForms.css'
 
 export default function App() {

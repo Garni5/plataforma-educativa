@@ -68,7 +68,7 @@ async function loginPersona(login, password) {
     nombres: persona.nombres,
     apellidos: persona.apellidos,
     correo: persona.correo,
-    privilegio, // 👈 clave para el frontend
+    privilegio, //  clave para el frontend
   };
 
   // El controller envía esto como "data"
