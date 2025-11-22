@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from '../pages/Home'
-import RegisterForm from '../pages/RegisterForm'
-import GoogleCallback from '../pages/GoogleCallback'
+import RegisterForm from '../fetures/auth/components/RegisterForm'
+import GoogleCallback from '../fetures/auth/components/GoogleCallback'
 import Sesion from '../pages/Sesion'
 import Navbar from '../layouts/Navbar'
 export default function App() {

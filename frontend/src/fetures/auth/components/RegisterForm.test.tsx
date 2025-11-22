@@ -98,7 +98,7 @@ expect(btn).toBeEnabled()
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
-          // ✅ sin ci, sin telefono y sin confirmar_password
+          //  sin ci, sin telefono y sin confirmar_password
           body: JSON.stringify({
             nombres: 'Ana',
             apellidos: 'Pérez',

@@ -5,6 +5,7 @@ const prisma = require("../prismaClient");
 
 const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 
+// REGISTRO (lo dejamos casi igual, solo quitamos el campo ci porque no existe)
 async function registerPersona(data) {
   console.log("sldkjfasd");
   const existing = await prisma.persona.findFirst({
@@ -18,6 +19,7 @@ async function registerPersona(data) {
   return persona;
 }
 
+// LOGIN (aquí es donde hacemos la magia del privilegio)
 async function loginPersona(login, password) {
 
   const persona = await prisma.persona.findFirst({
@@ -39,7 +41,17 @@ async function loginPersona(login, password) {
     { expiresIn: "1h" }
   );
 
-  return { persona, token };
+  // Formateamos lo que devolveremos al controller
+  const personaResponse = {
+    id_persona: persona.id_persona,
+    nombres: persona.nombres,
+    apellidos: persona.apellidos,
+    correo: persona.correo,
+    privilegio, // 👈 clave para el frontend
+  };
+
+  // El controller envía esto como "data"
+  return { persona: personaResponse, token };
 }
 
 async function loginSocial(correo, nombres,apellidos) {
