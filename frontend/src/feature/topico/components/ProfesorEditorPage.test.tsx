@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import ProfesorEditorPage from './ProfesorEditorPage'
-import '@testing-library/jest-dom/extend-expect'
+
 
 describe('ProfesorEditorPage', () => {
   test('renderiza correctamente', () => {
