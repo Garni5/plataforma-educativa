@@ -1,9 +1,5 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import ProfesorEditorPage from './ProfesorEditorPage'
-<<<<<<< HEAD
-
-=======
->>>>>>> saul
 
 describe('ProfesorEditorPage', () => {
   test('renderiza correctamente', () => {
