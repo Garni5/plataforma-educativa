@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react'
 import '../RegisterForms.css'
 
-
 const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Respuesta de la API (ajústalo si tu backend devuelve otra cosa)
 interface ResponseData {
   message?: string
   id_persona?: number
 }
 
+// Payload real que se envía al backend (sin confirmarPassword)
 type Persona = {
   nombres: string
   apellidos: string
@@ -16,6 +17,7 @@ type Persona = {
   password: string
 }
 
+// Estado del formulario en UI (incluye confirmarPassword solo para validar en cliente)
 type FormState = Persona & {
   confirmarPassword: string
 }
@@ -55,14 +57,15 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
-    
 
+  // Handlers
   const onChange = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setForm(prev => {
       const next = { ...prev, [k]: value }
       if (submitted) {
         setErrors(prevErr => ({ ...prevErr, [k]: validateField(k, value ?? '', next) }))
+        // si cambia password, revalida confirmación
         if (k === 'password' && submitted) {
           setErrors(prevErr => ({
             ...prevErr,
@@ -73,7 +76,6 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
       return next
     })
   }
-    
 
   const onBlur = (k: keyof FormState) => () => {
     const value = form[k] ?? ''
@@ -92,6 +94,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
 
   const isValid = useMemo(() => Object.keys(validate(form)).length === 0, [form])
 
+  // Progreso simple (solo campos requeridos reales)
   const progressPct = useMemo(() => {
     const requiredKeys: (keyof FormState)[] = ['nombres', 'apellidos', 'correo', 'password', 'confirmarPassword']
     const filled = requiredKeys.filter(k => (form[k] ?? '').trim().length > 0).length
@@ -104,10 +107,11 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
     const eMap = validate(form)
     setErrors(eMap)
     if (Object.keys(eMap).length) return
+
     try {
       setLoading(true)
       setServerError(null)
-
+      // solo enviamos lo necesario al backend
       const payload: Persona = {
         nombres: form.nombres,
         apellidos: form.apellidos,
@@ -115,7 +119,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
         password: form.password,
       }
 
-      const res = await fetch('http://localhost:5000/auth/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -135,15 +139,21 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
   }
 
   return (
-    <div className="w-1/2 h-full p-4 border-2 mt-10 rounded-3xl mx-auto">
+    <div className="register-page">
       <h1 className="register-title">Registro</h1>
 
+      {/* Barra de progreso (opcional) */}
       <div className="progress" aria-hidden="true">
         <div className="bar" style={{ width: `${progressPct}%` }} />
       </div>
-      <div className="">
-<form onSubmit={handleSubmit} noValidate data-testid="form-registro" className="">
-        <div className="w-full  ">
+
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        data-testid="form-registro"
+        className="register-form"
+      >
+        <div className="field">
           <label>Nombres</label>
           <input
             aria-label="Nombres"
@@ -215,14 +225,10 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
 
         {serverError && <div role="alert" className="error">{serverError}</div>}
 
-        <button type="submit" disabled={!isValid || loading} className="btn-primary">
+        <button type="submit" disabled={!isValid || loading} className="btn-primary" data-testid="btn-registrar">
           {loading ? 'Enviando...' : 'Registrar'}
         </button>
-
-        
-       
-      </form>
-       <button
+         <button
           type="button"
           className="btn-primary "
          onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`}
@@ -232,8 +238,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
           Registrar con Google
         </button>
         
-      </div>
-      
+      </form>
     </div>
   )
 }

@@ -1,21 +1,26 @@
+
 const passport = require("passport");
 const authService = require("../services/auth.service");
 require("dotenv").config();
 //registro sin google
 async function register(req, res) {
   try {    
-    const persona = await authService.registerPersona(req.body);    
+    const persona = await authService.registerPersona(req.body);  
+    if(!persona){
+      throw { status: 400, message: "Error al registrar el usuario" };
+    }  
     res.status(201).json({
-      success: true,    
+      status: 'success',    
       message: "Usuario registrado correctamente"
     });
   } catch (err) {
-    res.status(err.status || 400).json({
-      success: false,
+    res.status(err.status || 409).json({
+      status: 'error',
       message: err.message || "Error en el registro"
     });
   }
 }
+
 const logout = (req, res, next) => {
   if (req.isAuthenticated && req.isAuthenticated()) {
     // Cierra la sesión de Passport
@@ -47,16 +52,17 @@ async function login(req, res) {
     const { login, password } = req.body; 
     const result = await authService.loginPersona(login, password);
     res.status(200).json({
-      success: true,
+      status: 'success',
       token: result.token,
       message: "Usuario autenticado correctamente"
     });
   } catch (err) {
-    res.status(err.status || 401).json({
-      success: false,
-      message: err.message || "Error en el login"
-    });
-  }
+  const statusCode = Number(err.status) || 401;
+  res.status(statusCode).json({
+    status: 'error',
+    message: err.message || "Error en el login"
+  });
+}
 }
 
 // Google
