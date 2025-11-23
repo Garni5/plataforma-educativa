@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import {  useState } from 'react'
 
 
 function Home() {
-  const [mensaje, setMensaje] = useState<string>('Cargando...')
+  const [mensaje] = useState<string>('Cargando...')
 
   return (
     <div style={{ fontFamily: 'Poppins, sans-serif', textAlign: 'center', marginTop: '50px' }}>

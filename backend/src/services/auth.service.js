@@ -26,6 +26,7 @@ async function loginPersona(login, password) {
     where: { correo: login },
     include: { roles: true }, 
   });
+ 
   if (!persona) throw { status: 404, message: "Usuario no encontrado" };
   const valid = await bcrypt.compare(password, persona.password);
   if (!valid) throw { status: 401, message: "Contraseña incorrecta" };
@@ -47,7 +48,7 @@ async function loginPersona(login, password) {
     nombres: persona.nombres,
     apellidos: persona.apellidos,
     correo: persona.correo,
-    privilegio, // 👈 clave para el frontend
+    privilegio:persona.roles.map(r => r.nombre_privilegio), 
   };
 
   // El controller envía esto como "data"

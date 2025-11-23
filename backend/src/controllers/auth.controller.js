@@ -6,6 +6,7 @@ require("dotenv").config();
 async function register(req, res) {
   try {    
     const persona = await authService.registerPersona(req.body);  
+    console.log(persona);
     if(!persona){
       throw { status: 400, message: "Error al registrar el usuario" };
     }  
@@ -51,10 +52,12 @@ async function login(req, res) {
   try {
     const { login, password } = req.body; 
     const result = await authService.loginPersona(login, password);
+    console.log(result);
     res.status(200).json({
       status: 'success',
       token: result.token,
-      message: "Usuario autenticado correctamente"
+      message: "Usuario autenticado correctamente",
+      role: result.persona.privilegio[0],
     });
   } catch (err) {
   const statusCode = Number(err.status) || 401;

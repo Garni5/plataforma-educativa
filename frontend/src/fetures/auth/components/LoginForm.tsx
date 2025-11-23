@@ -5,24 +5,15 @@ interface LoginFormProps {
   onSuccess?: (data: LoginResponse) => void
 }
 
-interface PersonaResponse {
-  id_persona: number
-  nombres: string
-  apellidos: string
-  correo: string
-  privilegio: string
-}
 
-interface BackendLoginData {
-  token: string
-  persona: PersonaResponse
-}
+
 
 // Respuesta completa del backend
 interface LoginResponse {
-  success: boolean
-  data: BackendLoginData
+  status: string;
+  token:string 
   message: string
+  role: string
 }
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
@@ -58,7 +49,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   setLoading(true)
   try {
-    const res = await fetch('http://localhost:3000/api/auth/login', {
+    const res = await fetch('http://localhost:5000/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ login: email, password }),
@@ -78,17 +69,17 @@ const handleSubmit = async (e: React.FormEvent) => {
       )
     }
 
-    if (!res.ok || !data.success) {
+    if (!res.ok || !data) {
       throw new Error(data.message || 'Error de autenticación')
     }
 
     onSuccess?.(data)
 
-    const { persona } = data.data
+    
 
-    if (persona.privilegio === 'admin') {
+    if (data.role === 'administrador') {
       window.location.href = '/admin'
-    } else if (persona.privilegio === 'editor') {
+    } else if (data.role === 'editor') {
       window.location.href = '/profesor-editor'
     } else {
       window.location.href = '/'

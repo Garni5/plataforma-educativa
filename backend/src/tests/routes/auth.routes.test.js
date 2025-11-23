@@ -50,7 +50,10 @@ describe("Auth Routes", () => {
 
 describe("POST /auth/login", () => {
   it("debería autenticar al usuario correctamente", async () => {
-    const mockResult = { persona: { id_persona: 1 }, token: "abc123" };
+    const mockResult = { 
+    persona: { id_persona: 1, privilegio: ["administrador"] }, 
+    token: "abc123" 
+  };
     authService.loginPersona.mockResolvedValue(mockResult);
 
     const res = await request(app)
@@ -59,10 +62,11 @@ describe("POST /auth/login", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
-      status: 'success',
-      token: mockResult.token,
-      message: "Usuario autenticado correctamente",
-    });
+    status: 'success',
+    token: mockResult.token,
+    message: "Usuario autenticado correctamente",
+    role: mockResult.persona.privilegio[0]  // coincide con la función
+  });
   });
 
   it("debería devolver error al login incorrecto", async () => {
