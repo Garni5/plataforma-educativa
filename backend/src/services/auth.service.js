@@ -21,44 +21,23 @@ async function registerPersona(data) {
 
 // LOGIN (aquí es donde hacemos la magia del privilegio)
 async function loginPersona(login, password) {
-<<<<<<< HEAD
-  // Buscar usuario y traer roles
-  const persona = await prisma.persona.findFirst({
-    where: { correo: login },
-    include: { roles: true }, // Solo include roles directamente
-=======
 
   const persona = await prisma.persona.findFirst({
     where: { correo: login },
     include: { roles: true }, 
->>>>>>> jhonny
   });
  
   if (!persona) throw { status: 404, message: "Usuario no encontrado" };
   const valid = await bcrypt.compare(password, persona.password);
-<<<<<<< HEAD
-  if (!valid) {
-    throw { status: 401, message: "Contraseña incorrecta" };
-  }
-
-  // Mapear roles para el JWT
-=======
   if (!valid) throw { status: 401, message: "Contraseña incorrecta" };
->>>>>>> jhonny
   const roles = persona.roles.map(r => ({
     id_rol: r.id_rol,
     nombre_privilegio: r.nombre_privilegio, 
   }));
 
-<<<<<<< HEAD
-  // Generar token
-  const token = jwt.sign(
-    { id_persona: persona.id_persona, correo: persona.correo, roles },
-=======
 
   const token = jwt.sign(
     { id_persona: persona.id_persona, correo: persona.correo,telefono:persona.telefono, roles: roles },
->>>>>>> jhonny
     JWT_SECRET,
     { expiresIn: "1h" }
   );
@@ -69,11 +48,7 @@ async function loginPersona(login, password) {
     nombres: persona.nombres,
     apellidos: persona.apellidos,
     correo: persona.correo,
-<<<<<<< HEAD
-    privilegio, //  clave para el frontend
-=======
     privilegio:persona.roles.map(r => r.nombre_privilegio), 
->>>>>>> jhonny
   };
 
   // El controller envía esto como "data"

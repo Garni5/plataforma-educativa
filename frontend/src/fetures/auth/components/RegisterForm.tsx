@@ -119,13 +119,9 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
         password: form.password,
       }
 
-<<<<<<< HEAD:frontend/src/pages/RegisterForm.tsx
-      const API_URL = import.meta.env.VITE_API_URL 
+      const API_URL = import.meta.env.VITE_BACKEND_URL;
 
       const res = await fetch(`${API_URL}/auth/register`, {
-=======
-      const res = await fetch('http://localhost:5000/auth/register', {
->>>>>>> jhonny:frontend/src/fetures/auth/components/RegisterForm.tsx
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

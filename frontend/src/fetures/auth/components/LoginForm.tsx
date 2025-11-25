@@ -5,30 +5,13 @@ interface LoginFormProps {
   onSuccess?: (data: LoginResponse) => void
 }
 
-<<<<<<< HEAD:frontend/src/pages/LoginForm.tsx
-interface Rol {
-  id_rol: number
-  nombre_privilegio: string
-}
-
-interface PersonaResponse {
-  id_persona: number
-  nombres: string
-  apellidos: string
-  correo: string
-  roles: Rol[]          // <-- ahora usamos roles, no privilegio string
-}
-=======
->>>>>>> jhonny:frontend/src/fetures/auth/components/LoginForm.tsx
-
-
-
 // Respuesta completa del backend
 interface LoginResponse {
-  status: string;
-  token:string 
-  message: string
+  status?: string
+  token?: string
+  message?: string
   role: string
+  success?: boolean    // <- la agrego para que puedas usar data.success
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -64,73 +47,44 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     setErrors({})
     if (!validate()) return
 
-<<<<<<< HEAD:frontend/src/pages/LoginForm.tsx
     setLoading(true)
-=======
-  setLoading(true)
-  try {
-    const res = await fetch('http://localhost:5000/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ login: email, password }),
-    })
->>>>>>> jhonny:frontend/src/fetures/auth/components/LoginForm.tsx
-
     try {
+      // 🔹 ÚNICO fetch que se usa
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // 👇 el backend espera "correo", no "login"
+        // el backend espera "correo"
         body: JSON.stringify({ correo: email, password }),
       })
 
-<<<<<<< HEAD:frontend/src/pages/LoginForm.tsx
-      // Si el backend rompió y no devuelve JSON, esto tirará error
       const data: LoginResponse = await res.json()
-=======
-    if (!res.ok || !data) {
-      throw new Error(data.message || 'Error de autenticación')
-    }
->>>>>>> jhonny:frontend/src/fetures/auth/components/LoginForm.tsx
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Error de autenticación')
+      // misma lógica: si no está ok o success es falso -> error
+      if (!res.ok || !data || data.success === false) {
+        throw new Error(data?.message || 'Error de autenticación')
       }
 
-<<<<<<< HEAD:frontend/src/pages/LoginForm.tsx
+      // callback opcional que ya tenías en props
       onSuccess?.(data)
 
-      const { persona } = data.data
-      const roles = persona.roles || []
-
-      // Definimos el destino según los privilegios
-      let destino = '/'
-
-      if (roles.some(r => r.nombre_privilegio === 'DOCENTE')) {
-        destino = '/admin'
-      } else if (roles.some(r => r.nombre_privilegio === 'ESTUDIANTE')) {
-        destino = '/profesor-editor'
-      }
-
-      window.location.href = destino
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setErrors({ server: err.message })
+      // redirecciones según rol
+      if (data.role === 'administrador') {
+        window.location.href = '/admin'
+      } else if (data.role === 'editor') {
+        window.location.href = '/profesor-editor'
       } else {
-        setErrors({ server: 'Error desconocido' })
+        window.location.href = '/'
       }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Error de autenticación'
+
+      setErrors((prev) => ({
+        ...prev,
+        server: message,
+      }))
     } finally {
       setLoading(false)
-=======
-    
-
-    if (data.role === 'administrador') {
-      window.location.href = '/admin'
-    } else if (data.role === 'editor') {
-      window.location.href = '/profesor-editor'
-    } else {
-      window.location.href = '/'
->>>>>>> jhonny:frontend/src/fetures/auth/components/LoginForm.tsx
     }
   }
 

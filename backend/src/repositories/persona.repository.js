@@ -20,7 +20,6 @@ async function createPersona(data) {
       nombres: data.nombres,
       apellidos: data.apellidos,
       correo: data.correo,
-      telefono: data.telefono ?? null,
       password: data.password ?? null,      
     },
      include: { roles: false },

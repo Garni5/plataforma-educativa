@@ -10,13 +10,8 @@ import Home from './pages/Home'
 import RegisterForm from './fetures/auth/components/RegisterForm'
 import LoginForm from './fetures/auth/components/LoginForm'
 import AdminPage from './pages/AdminPage'
-<<<<<<< HEAD
 import ProfesorEditorPage from './feature/topico/components/ProfesorEditorPage'
-import './RegisterForms.css'
-=======
-import ProfesorEditorPage from './pages/ProfesorEditorPage'
 
->>>>>>> jhonny
 
 export default function App() {
   const location = useLocation()
