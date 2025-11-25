@@ -39,8 +39,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Ensure jsdom is installed
-        run: npm install --save-dev jsdom
+      - name: Ensure test DOM deps
+        run: npm install --save-dev jsdom whatwg-url @testing-library/react @testing-library/jest-dom
 
       - name: Lint
         run: npm run lint
@@ -50,7 +50,7 @@ jobs:
           echo "Checking for test files..."
           if find ./src -type f \( -name "*.test.*" -o -name "*.spec.*" \) | grep -q .; then
             echo "Running Vitest..."
-            npm test -- --run || echo "Vitest failed, but continuing CI"
+            npx vitest run --config vitest.config.js --run --reporter=verbose
           else
             echo "No test files found; skipping Vitest."
           fi
@@ -59,11 +59,15 @@ jobs:
         run: npm run build --if-present
 
   backend:
-    name: Backend (lint, test, build if present)
+    name: Backend (lint, test, build)
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
+
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       - uses: actions/checkout@v4
@@ -85,32 +89,27 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install deps
+      - name: Install dependencies
         if: steps.has_backend.outputs.present == 'true'
-        working-directory: ./backend
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+          npm ci
+          npm install --save-dev vitest supertest @types/supertest
 
       - name: Lint (optional)
         if: steps.has_backend.outputs.present == 'true'
-        working-directory: ./backend
         run: npm run lint --if-present
 
-      - name: Test (skip if none)
+      - name: Test (Vitest - Node)
         if: steps.has_backend.outputs.present == 'true'
-        working-directory: ./backend
         run: |
-          if ls -1 **/*.test.* **/*.spec.* 2>/dev/null | grep -q .; then
-            npm test -- --run
+          echo " Buscando archivos de prueba..."
+          if find ./test -type f \( -name "*.test.*" -o -name "*.spec.*" \) | grep -q .; then
+            echo " Ejecutando pruebas de backend con Vitest..."
+            npm test -- --run --reporter=verbose
           else
-            echo "No backend test files found; skipping tests."
+            echo "  No se encontraron archivos de prueba en backend/test, se omite."
           fi
 
       - name: Build (optional)
         if: steps.has_backend.outputs.present == 'true'
-        working-directory: ./backend
         run: npm run build --if-present
