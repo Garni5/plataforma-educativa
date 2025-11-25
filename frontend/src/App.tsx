@@ -6,43 +6,64 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom'
-import Home from './pages/Home'
+
+import HomePage from './pages/Home'
 import RegisterForm from './pages/RegisterForm'
 import LoginForm from './pages/LoginForm'
 import AdminPage from './pages/AdminPage'
 import ProfesorEditorPage from './pages/ProfesorEditorPage'
 import './RegisterForms.css'
+import type { JSX } from 'react'
+
+// =======================================
+//  ProtectedRoute (solo valida token)
+// =======================================
+interface ProtectedRouteProps {
+  children: JSX.Element
+}
+
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const token = localStorage.getItem('token')
+
+  // Si NO hay token → enviar al login
+  if (!token) return <Navigate to="/login" replace />
+
+  return children
+}
 
 export default function App() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // Detectar la ruta actual
+  // Detectar login
+  const isLoggedIn = !!localStorage.getItem('token')
+
+  // Detectar rutas específicas
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isEditorRoute = location.pathname.startsWith('/profesor-editor')
 
   const handleLogout = () => {
-    // Limpia token o sesión si lo usas
     localStorage.removeItem('token')
+    localStorage.removeItem('userRole')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userName')
+    localStorage.removeItem('userEmail')
+
     navigate('/login', { replace: true })
   }
 
   return (
     <>
+      {/* =============================== */}
+      {/* BARRA SUPERIOR                 */}
+      {/* =============================== */}
       <nav className="topbar">
         <span>Plataforma</span>
 
         <div className="nav">
-          {isAdminRoute ? (
+          {isLoggedIn && (isAdminRoute || isEditorRoute) ? (
             <>
-              <span>Soy admin</span>
-              <button className="logout-button" onClick={handleLogout}>
-                Cerrar sesión
-              </button>
-            </>
-          ) : isEditorRoute ? (
-            <>
-              <span>Soy profesor editor</span>
+              <span>Sesión activa</span>
               <button className="logout-button" onClick={handleLogout}>
                 Cerrar sesión
               </button>
@@ -50,17 +71,19 @@ export default function App() {
           ) : (
             <>
               <NavLink
-                to="/home"
+                to="/"
                 className={({ isActive }) => (isActive ? 'active' : '')}
               >
                 Home
               </NavLink>
+
               <NavLink
                 to="/register"
                 className={({ isActive }) => (isActive ? 'active' : '')}
               >
                 Registro
               </NavLink>
+
               <NavLink
                 to="/login"
                 className={({ isActive }) => (isActive ? 'active' : '')}
@@ -72,29 +95,54 @@ export default function App() {
         </div>
       </nav>
 
+      {/* =============================== */}
+      {/* CONTENIDO CENTRAL               */}
+      {/* =============================== */}
       <main>
         <Routes>
-          {/* Raíz redirige al Login */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Raíz muestra el Home */}
+          <Route path="/" element={<HomePage />} />
 
-          <Route path="/home" element={<Home />} />
+          {/* Públicas */}
           <Route
             path="/register"
-            element={<RegisterForm onSuccess={(d) => console.log('OK', d)} />}
+            element={<RegisterForm onSuccess={(d) => console.log('Registro OK', d)} />}
           />
+
           <Route
             path="/login"
             element={<LoginForm onSuccess={(d) => console.log('Login OK', d)} />}
           />
 
-          {/*  Rutas según el rol */}
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/profesor-editor" element={<ProfesorEditorPage />} />
+          {/* =============================== */}
+          {/*  RUTAS PROTEGIDAS SIN ROLES    */}
+          {/* =============================== */}
+
+          {/* Profesor Editor */}
+          <Route
+            path="/ProfesorEditorPage"
+            element={
+              <ProtectedRoute>
+                <ProfesorEditorPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* 404 */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </>
   )
 }
+
