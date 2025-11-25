@@ -19,6 +19,8 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "nodemailer": "^7.0.10",
     "passport": "^0.7.0",
     "passport-azure-ad-oauth2": "^0.0.4",
     "passport-google-oauth20": "^2.0.0"
@@ -37,10 +39,14 @@
     "jest": "^30.2.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.16.3",
+<<<<<<< HEAD
 
     "supertest": "^7.1.4",
 
     "vitest": "^4.0.4"
 
+=======
+    "supertest": "^7.1.4"
+>>>>>>> jhonny
   }
 }

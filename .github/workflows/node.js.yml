@@ -12,11 +12,9 @@ concurrency:
 
 env:
   CI: true
-<<<<<<< HEAD
+
   NODE_ENV: test # Asegura entorno correcto para Vitest
-=======
-  NODE_ENV: test
->>>>>>> saul
+
 
 jobs:
   frontend:
@@ -54,7 +52,7 @@ jobs:
           echo "Checking for test files..."
           if find ./src -type f \( -name "*.test.*" -o -name "*.spec.*" \) | grep -q .; then
             echo "Running Vitest..."
-            npm test -- --run
+            npx vitest run --config vitest.config.js --run --reporter=verbose
           else
             echo "No test files found; skipping Vitest."
           fi

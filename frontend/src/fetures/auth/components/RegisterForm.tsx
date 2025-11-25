@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import '../RegisterForms.css'
+import './RegisterForms.css'
 
 const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -107,7 +107,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
     const eMap = validate(form)
     setErrors(eMap)
     if (Object.keys(eMap).length) return
-     console.log(form);
+
     try {
       setLoading(true)
       setServerError(null)
@@ -119,9 +119,13 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
         password: form.password,
       }
 
+<<<<<<< HEAD:frontend/src/pages/RegisterForm.tsx
       const API_URL = import.meta.env.VITE_API_URL 
 
       const res = await fetch(`${API_URL}/auth/register`, {
+=======
+      const res = await fetch('http://localhost:5000/auth/register', {
+>>>>>>> jhonny:frontend/src/fetures/auth/components/RegisterForm.tsx
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -227,9 +231,19 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
 
         {serverError && <div role="alert" className="error">{serverError}</div>}
 
-        <button type="submit" disabled={!isValid || loading} className="btn-primary">
+        <button type="submit" disabled={!isValid || loading} className="btn-primary" data-testid="btn-registrar">
           {loading ? 'Enviando...' : 'Registrar'}
         </button>
+         <button
+          type="button"
+          className="btn-primary "
+         onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`}
+
+        >
+          
+          Registrar con Google
+        </button>
+        
       </form>
     </div>
   )

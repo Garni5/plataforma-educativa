@@ -1,7 +1,6 @@
 const { googleCallback } = require("../../controllers/auth.controller");
 const passport = require("passport");
 
-jest.mock("../../services/auth.service");
 jest.mock("passport");
 
 describe("Google Callback", () => {
@@ -10,42 +9,36 @@ describe("Google Callback", () => {
   beforeEach(() => {
     req = {};
     res = {
+      redirect: jest.fn(),
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
     next = jest.fn();
   });
 
-  it("responde con usuario y token cuando la autenticación es exitosa", async () => {
+  it("redirecciona correctamente cuando la autenticación es exitosa", async () => {
     const mockUser = { id_persona: 1, correo: "test@mail.com", token: "abc123" };
 
-    // Mock de passport.authenticate simulando éxito
     passport.authenticate = jest.fn((strategy, callback) => {
-      return () => {
-        callback(null, mockUser); // sin error, con usuario
-      };
+      return () => callback(null, mockUser);
     });
 
     await googleCallback(req, res, next);
 
-    expect(res.json).toHaveBeenCalledWith({
-      jwt: mockUser.token,
-      user: mockUser,
-    });
+    expect(res.redirect).toHaveBeenCalledWith(
+      `${process.env.FRONTEND_URL}/auth/google/callback?token=${mockUser.token}`
+    );
   });
 
-  it("responde con error 401 cuando falla la autenticación", async () => {
+  it("redirecciona al login con error cuando falla la autenticación", async () => {
     passport.authenticate = jest.fn((strategy, callback) => {
-      return () => {
-        callback(new Error("Error autenticando Google"), null);
-      };
+      return () => callback(new Error("Error autenticando Google"), null);
     });
 
     await googleCallback(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Error autenticando Google",
-    });
+    expect(res.redirect).toHaveBeenCalledWith(
+      `${process.env.FRONTEND_URL}/login?error=google`
+    );
   });
 });

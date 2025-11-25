@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import '../LoginForm.css'
+import './LoginForm.css'
 
 interface LoginFormProps {
   onSuccess?: (data: LoginResponse) => void
 }
 
+<<<<<<< HEAD:frontend/src/pages/LoginForm.tsx
 interface Rol {
   id_rol: number
   nombre_privilegio: string
@@ -17,17 +18,17 @@ interface PersonaResponse {
   correo: string
   roles: Rol[]          // <-- ahora usamos roles, no privilegio string
 }
+=======
+>>>>>>> jhonny:frontend/src/fetures/auth/components/LoginForm.tsx
 
-interface BackendLoginData {
-  token: string
-  persona: PersonaResponse
-}
+
 
 // Respuesta completa del backend
 interface LoginResponse {
-  success: boolean
-  data: BackendLoginData
+  status: string;
+  token:string 
   message: string
+  role: string
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -63,7 +64,17 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     setErrors({})
     if (!validate()) return
 
+<<<<<<< HEAD:frontend/src/pages/LoginForm.tsx
     setLoading(true)
+=======
+  setLoading(true)
+  try {
+    const res = await fetch('http://localhost:5000/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login: email, password }),
+    })
+>>>>>>> jhonny:frontend/src/fetures/auth/components/LoginForm.tsx
 
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
@@ -73,13 +84,20 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         body: JSON.stringify({ correo: email, password }),
       })
 
+<<<<<<< HEAD:frontend/src/pages/LoginForm.tsx
       // Si el backend rompió y no devuelve JSON, esto tirará error
       const data: LoginResponse = await res.json()
+=======
+    if (!res.ok || !data) {
+      throw new Error(data.message || 'Error de autenticación')
+    }
+>>>>>>> jhonny:frontend/src/fetures/auth/components/LoginForm.tsx
 
       if (!res.ok || !data.success) {
         throw new Error(data.message || 'Error de autenticación')
       }
 
+<<<<<<< HEAD:frontend/src/pages/LoginForm.tsx
       onSuccess?.(data)
 
       const { persona } = data.data
@@ -103,6 +121,16 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       }
     } finally {
       setLoading(false)
+=======
+    
+
+    if (data.role === 'administrador') {
+      window.location.href = '/admin'
+    } else if (data.role === 'editor') {
+      window.location.href = '/profesor-editor'
+    } else {
+      window.location.href = '/'
+>>>>>>> jhonny:frontend/src/fetures/auth/components/LoginForm.tsx
     }
   }
 
