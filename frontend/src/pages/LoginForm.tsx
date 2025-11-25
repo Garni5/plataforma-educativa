@@ -5,12 +5,17 @@ interface LoginFormProps {
   onSuccess?: (data: LoginResponse) => void
 }
 
+interface Rol {
+  id_rol: number
+  nombre_privilegio: string
+}
+
 interface PersonaResponse {
   id_persona: number
   nombres: string
   apellidos: string
   correo: string
-  privilegio: string
+  roles: Rol[]          // <-- ahora usamos roles, no privilegio string
 }
 
 interface BackendLoginData {
@@ -24,6 +29,8 @@ interface LoginResponse {
   data: BackendLoginData
   message: string
 }
+
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState('')
@@ -51,59 +58,53 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     return Object.keys(newErrors).length === 0
   }
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setErrors({})
-  if (!validate()) return
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrors({})
+    if (!validate()) return
 
-  setLoading(true)
-  try {
-    const res = await fetch('http://localhost:3000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ login: email, password }),
-    })
+    setLoading(true)
 
-    // 👇 Leemos primero como texto para ver qué llega
-    const text = await res.text()
-    console.log('Respuesta cruda del backend:', text)
-
-    let data: LoginResponse
     try {
-      data = JSON.parse(text)
-    } catch {
-      // Aquí sabemos que vino HTML (por eso el '<!DOCTYPE ...')
-      throw new Error(
-        'El backend no está devolviendo JSON. Revisa la URL o el puerto (debería ser http://localhost:3000/api/auth/login).'
-      )
-    }
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // 👇 el backend espera "correo", no "login"
+        body: JSON.stringify({ correo: email, password }),
+      })
 
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Error de autenticación')
-    }
+      // Si el backend rompió y no devuelve JSON, esto tirará error
+      const data: LoginResponse = await res.json()
 
-    onSuccess?.(data)
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Error de autenticación')
+      }
 
-    const { persona } = data.data
+      onSuccess?.(data)
 
-    if (persona.privilegio === 'admin') {
-      window.location.href = '/admin'
-    } else if (persona.privilegio === 'editor') {
-      window.location.href = '/profesor-editor'
-    } else {
-      window.location.href = '/'
+      const { persona } = data.data
+      const roles = persona.roles || []
+
+      // Definimos el destino según los privilegios
+      let destino = '/'
+
+      if (roles.some(r => r.nombre_privilegio === 'DOCENTE')) {
+        destino = '/admin'
+      } else if (roles.some(r => r.nombre_privilegio === 'ESTUDIANTE')) {
+        destino = '/profesor-editor'
+      }
+
+      window.location.href = destino
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrors({ server: err.message })
+      } else {
+        setErrors({ server: 'Error desconocido' })
+      }
+    } finally {
+      setLoading(false)
     }
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      setErrors({ server: err.message })
-    } else {
-      setErrors({ server: 'Error desconocido' })
-    }
-  } finally {
-    setLoading(false)
   }
-}
-
 
   return (
     <div className="login-layout">
