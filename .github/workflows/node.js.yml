@@ -4,7 +4,7 @@ on:
   push:
     branches: ["main", "saul", "jhonny", "tarea1(11/11/25)"]
   pull_request:
-    branches: ["main", "saul", "jhonny"]
+    branches: ["main", "saul", "jhonny", "tarea1(11/11/25)"]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
 
     defaults:
       run:
