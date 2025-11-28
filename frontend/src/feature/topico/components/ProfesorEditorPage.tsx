@@ -93,8 +93,8 @@ const ProfesorEditorPage: React.FC = () => {
               autoFocus
             />
             <div className="modal-actions">
-              <button className="btn-primary" onClick={handleModalAccept}>Acepta</button>
-              <button className="btn-danger" onClick={closeModal}>Cancela</button>
+              <button className="btn-primary" onClick={handleModalAccept}>Aceptar</button>
+              <button className="btn-danger" onClick={closeModal}>Cancelar</button>
             </div>
           </div>
         </div>
