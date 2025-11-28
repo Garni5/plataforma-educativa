@@ -55,29 +55,48 @@ async function loginPersona(login, password) {
   return { persona: personaResponse, token };
 }
 
-async function loginSocial(correo, nombres,apellidos) {
-  let persona = await prisma.persona.findFirst({ where: { correo } });
- 
+async function loginSocial(correo, nombres, apellidos) {
+  console.log('▶ loginSocial', { correo, nombres, apellidos });
 
-  if (!persona) {   
-   try {
-    persona = await prisma.persona.create({
-    data: { correo, nombres, apellidos, telefono: null, password: null },
+  // 1. Buscar si ya existe la persona por correo
+  let persona = await prisma.persona.findFirst({
+    where: { correo },
   });
-} catch (err) {
-  console.error("❌ Error creando persona:", err);
-  throw err;
-}
-  }
+  console.log('persona encontrada:', persona);
 
+  // 2. Si no existe, crearla (SIN telefono, SIN roles, SIN password local)
+  if (!persona) {
+    try {
+      persona = await prisma.persona.create({
+        data: {
+          correo,
+          nombres,
+          apellidos,
+          // password no puede ser null porque en Prisma es obligatorio
+          // Usamos un valor "dummy" que nunca se va a usar para login
+          password: '',  // o 'GOOGLE_AUTH'
+        },
+      });
+      console.log('persona creada (Google):', persona);
+    } catch (err) {
+      console.error('❌ Error creando persona (Google):', err);
+      throw err;
+    }
+  }
+  // 3. Generar token (solo con lo que seguro existe)
   const token = jwt.sign(
-    { id_persona: persona.id_persona, correo: persona.correo,telefono:persona.telefono, roles: persona.roles },
+    {
+      id_persona: persona.id_persona,
+      correo: persona.correo,
+      // NO telefono, NO roles aquí para no reventar
+    },
     JWT_SECRET,
-    { expiresIn: "1h" }
+    { expiresIn: '1h' }
   );
-  console.log(token);
+  console.log('token social generado:', token);
 
   return { persona, token };
 }
+
 
 module.exports = { registerPersona, loginPersona, loginSocial };
