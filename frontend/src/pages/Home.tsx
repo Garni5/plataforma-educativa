@@ -1,44 +1,51 @@
-import { useEffect, useState } from "react"
-import { getHola, type HolaResponse } from "../services/prueba"
-import "./Home.css" // importa los estilos
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { getHola, type HolaResponse } from '../services/prueba'
 
 function Home() {
-  const [mensaje, setMensaje] = useState<string>("Cargando...")
+  const [mensaje, setMensaje] = useState<string>('Cargando...')
+  const navigate = useNavigate()
+
+  // Detectar si está logeado
+  const token = localStorage.getItem('token')
 
   useEffect(() => {
     getHola()
       .then((data: HolaResponse) => setMensaje(data.mensaje))
-      .catch(() => setMensaje("Error al conectar con el backend"))
+      .catch(() => setMensaje('Error al conectar con el backend'))
   }, [])
 
   return (
-    <div className="container">
-      {/* Lado izquierdo - formulario */}
-      <div className="left">
-        <div className="form-box">
-          <h2>Inicie sesión</h2>
-          <form>
-            <input type="email" placeholder="Email" />
-            <input type="password" placeholder="Password" />
-            <button type="submit">Login</button>
-          </form>
-          <p className="register">
-            <a href="#">Register</a>
-          </p>
-          <p className="mensaje">{mensaje}</p>
-        </div>
-      </div>
+    <div
+      style={{
+        fontFamily: 'Poppins, sans-serif',
+        textAlign: 'center',
+        marginTop: '50px'
+      }}
+    >
+      <h1>Hola mundo</h1>
+      <p>{mensaje}</p>
 
-      {/* Lado derecho - imagen + texto */}
-      <div className="right">
-        <div className="overlay"></div>
-        <h1>
-          Plataforma Educativa <br /> Programación Python
-        </h1>
-      </div>
+      {/* Mostrar botón solo si está logeado */}
+      {token && (
+        <button
+          onClick={() => navigate('/ProfesorEditorPage')}
+          style={{
+            marginTop: '20px',
+            padding: '12px 18px',
+            backgroundColor: '#2563eb',
+            color: 'white',
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          Ir al Editor de Profesor
+        </button>
+      )}
     </div>
   )
 }
 
 export default Home
-
