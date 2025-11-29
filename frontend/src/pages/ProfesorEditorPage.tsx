@@ -6,6 +6,8 @@ interface Resource {
   type: 'video' | 'document' | 'slides' | 'audio';
   title: string;
   description: string;
+  file?: File;
+  fileUrl?: string;
   hasTranscription?: boolean;
 }
 
@@ -41,6 +43,9 @@ const ProfesorEditorPage = () => {
   const [activeTopicId, setActiveTopicId] = useState('1');
   const [showModal, setShowModal] = useState(false);
   const [newTopicTitle, setNewTopicTitle] = useState('');
+  const [selectedResourceType, setSelectedResourceType] = useState<'video' | 'document' | 'slides' | 'audio' | null>(null);
+  const [resourceTitle, setResourceTitle] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const activeTopic = topics.find(t => t.id === activeTopicId);
 
@@ -59,10 +64,17 @@ const ProfesorEditorPage = () => {
     audio: 'Audio'
   };
 
+  const fileAccept = {
+    video: 'video/*',
+    document: '.html,.pdf,.doc,.docx,.txt',
+    slides: '.ppt,.pptx,.pdf',
+    audio: 'audio/*'
+  };
+
   // Agregar nuevo tópico
   const handleAddTopic = () => {
     if (newTopicTitle.trim()) {
-      const newTopic = {
+      const newTopic: Topic = {
         id: Date.now().toString(),
         title: newTopicTitle,
         resources: []
@@ -74,15 +86,33 @@ const ProfesorEditorPage = () => {
   };
 
   // Agregar nuevo recurso
-  const handleAddResource = (type: 'video' | 'document' | 'slides' | 'audio') => {
-    const title = prompt(`Ingresa el título del ${labels[type]}:`);
-    if (title && activeTopic) {
-      const newResource = {
+  const handleAddResource = () => {
+    if (!resourceTitle.trim()) {
+      alert('Por favor ingresa un título');
+      return;
+    }
+
+    if (!selectedResourceType) {
+      alert('Por favor selecciona un tipo de recurso');
+      return;
+    }
+
+    if (!selectedFile) {
+      alert(`Por favor selecciona un ${labels[selectedResourceType].toLowerCase()}`);
+      return;
+    }
+
+    if (activeTopic) {
+      const fileUrl = URL.createObjectURL(selectedFile);
+
+      const newResource: Resource = {
         id: Date.now().toString(),
-        type,
-        title,
-        description: `Nuevo ${labels[type].toLowerCase()}`,
-        ...(type === 'video' && { hasTranscription: false })
+        type: selectedResourceType,
+        title: resourceTitle,
+        description: `${labels[selectedResourceType]} - ${selectedFile.name}`,
+        file: selectedFile,
+        fileUrl: fileUrl,
+        ...(selectedResourceType === 'video' && { hasTranscription: false })
       };
 
       const updatedTopics = topics.map(t => {
@@ -92,7 +122,12 @@ const ProfesorEditorPage = () => {
         return t;
       });
       setTopics(updatedTopics);
+
+      // Limpiar modal
       setShowModal(false);
+      setSelectedResourceType(null);
+      setResourceTitle('');
+      setSelectedFile(null);
     }
   };
 
@@ -127,6 +162,18 @@ const ProfesorEditorPage = () => {
       return t;
     });
     setTopics(updatedTopics);
+  };
+
+  // Descargar recurso
+  const handleDownloadResource = (resource: Resource) => {
+    if (resource.fileUrl && resource.file) {
+      const link = document.createElement('a');
+      link.href = resource.fileUrl;
+      link.download = resource.file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
@@ -197,6 +244,7 @@ const ProfesorEditorPage = () => {
                   <button
                     onClick={() => handleDeleteResource(resource.id)}
                     className="profesor-btn-delete"
+                    title="Eliminar"
                   >
                     🗑️
                   </button>
@@ -211,6 +259,34 @@ const ProfesorEditorPage = () => {
                     {resource.description}
                   </p>
                 </div>
+
+                {resource.fileUrl && (
+                  <div className="profesor-resource-actions">
+                    {resource.type === 'video' && (
+                      <div className="profesor-resource-preview">
+                        <video width="100%" height="150" controls>
+                          <source src={resource.fileUrl} />
+                          Tu navegador no soporta videos HTML5
+                        </video>
+                      </div>
+                    )}
+                    {resource.type === 'audio' && (
+                      <div className="profesor-resource-preview">
+                        <audio controls style={{ width: '100%' }}>
+                          <source src={resource.fileUrl} />
+                          Tu navegador no soporta audios HTML5
+                        </audio>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleDownloadResource(resource)}
+                      className="profesor-btn profesor-btn-small"
+                      title="Descargar"
+                    >
+                      ⬇️ Descargar
+                    </button>
+                  </div>
+                )}
 
                 {resource.type === 'video' && (
                   <div className="profesor-resource-transcription">
@@ -246,25 +322,77 @@ const ProfesorEditorPage = () => {
             <div className="profesor-modal-header">
               <h3>Agregar Nuevo Recurso</h3>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedResourceType(null);
+                  setResourceTitle('');
+                  setSelectedFile(null);
+                }}
                 className="profesor-close-btn"
               >
                 ✕
               </button>
             </div>
 
-            <div className="profesor-resource-options">
-              {(Object.entries(icons) as Array<[keyof typeof icons, string]>).map(([type, icon]) => (
-                <div
-                  key={type}
-                  className="profesor-resource-option"
-                  onClick={() => handleAddResource(type)}
+            {!selectedResourceType ? (
+              <div className="profesor-resource-options">
+                {(Object.entries(icons) as Array<[keyof typeof icons, string]>).map(([type, icon]) => (
+                  <div
+                    key={type}
+                    className="profesor-resource-option"
+                    onClick={() => setSelectedResourceType(type)}
+                  >
+                    <span className="profesor-option-icon">{icon}</span>
+                    <span className="profesor-option-label">{labels[type]}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="profesor-resource-form">
+                <button
+                  onClick={() => setSelectedResourceType(null)}
+                  className="profesor-back-btn"
                 >
-                  <span className="profesor-option-icon">{icon}</span>
-                  <span className="profesor-option-label">{labels[type]}</span>
+                  ← Volver
+                </button>
+
+                <div className="profesor-form-group">
+                  <label htmlFor="resourceTitle">Título del {labels[selectedResourceType].toLowerCase()}</label>
+                  <input
+                    id="resourceTitle"
+                    type="text"
+                    value={resourceTitle}
+                    onChange={(e) => setResourceTitle(e.target.value)}
+                    placeholder={`Ej: ${labels[selectedResourceType]} #1`}
+                    className="profesor-input"
+                  />
                 </div>
-              ))}
-            </div>
+
+                <div className="profesor-form-group">
+                  <label htmlFor="resourceFile">Selecciona el archivo</label>
+                  <input
+                    id="resourceFile"
+                    type="file"
+                    accept={fileAccept[selectedResourceType]}
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    className="profesor-file-input"
+                  />
+                  {selectedFile && (
+                    <p className="profesor-file-info">
+                      ✓ {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleAddResource}
+                  className="profesor-btn profesor-btn-success profesor-btn-full"
+                  disabled={!resourceTitle.trim() || !selectedFile}
+                >
+                  ✓ Agregar Recurso
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
