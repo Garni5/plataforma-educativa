@@ -7,94 +7,103 @@ Antes de ejecutar la aplicación, asegúrate de tener instaladas las siguientes 
 - **Node.js** (versión 18 o superior)  
   Puedes descargarlo desde [https://nodejs.org/](https://nodejs.org/)
 
-- **npm** (viene con Node.js)  
+- **npm** (viene con Node.js)
+
 ### 0. Clonar el repositorio
 
 Primero, clona el repositorio del proyecto desde GitHub (o tu plataforma de control de versiones):
 
 ```bash
 git clone https://github.com/tu-usuario/tu-repositorio.git
-````
+```
+
 ### 1. Instalar dependencias
 
 ```bash
 cd Frontend
 npm install
-````
-### 4. Ejecutar la aplicación
-
-````
-npm run dev
-````
----
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 4. Ejecutar la aplicación
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```
+npm run dev
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## La estructura de carpetas
+
+```
+src/
+├── app/
+│   ├── App.tsx                   # Componente raíz
+│   └── router/
+│       ├── AppRouter.tsx         # Rutas globales
+│       └── ProtectedRoute.tsx    # Ruta protegida por login
+│
+├── core/                        # Config global y assets reutilizables
+│   ├── assets/
+│   │   ├── css/
+│   │   │   └── App.css
+│   │   ├── images/
+│   │   │   └── logo.png
+│   │   └── icons/
+│   │       └── stock-icon.svg
+│   └── config/
+│       └── env.ts               # Constantes y variables globales
+│
+├── layouts/                     # Layouts reutilizables
+│   ├── Header.tsx
+│   └── FullLayout.tsx           # Sidebar + Header + Footer
+│
+├── pages/                       # Páginas principales
+│   ├── HomePage/
+│   │   └── HomePage.tsx
+│   └── DashboardPage/
+│       └── DashboardPage.tsx
+│
+├── features/                    # Cada feature independiente
+│   ├── feature1/
+│   │   ├── api/
+│   │   │   └── productsService.ts
+│   │   ├── components/
+│   │   │   ├── ProductCard.tsx
+│   │   │   └── ProductList.tsx
+│   │   ├── hooks/
+│   │   │   └── useProducts.ts
+│   │   ├── types/
+│   │   │   └── product.types.ts
+│   │   └── assets/               # Assets específicos de la feature
+│   │       └── product-icon.svg
+│   │
+│   ├── feature2/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── types/
+│   │   └── assets/
+│   │
+├── entities/                    # Modelos de negocio reutilizables
+│   ├── Product/
+│   │   └── index.ts
+│   ├── Stock/
+│   └── Supplier/
+│
+├── shared/                      # Componentes, widgets y utilidades compartidas
+│   ├── ui/
+│   │   └── widgets/
+│   │       ├── Button.tsx
+│   │       ├── Table.tsx
+│   │       └── UserCard.tsx
+│   ├── hooks/
+│   │   └── useMediaQuery.ts
+│   ├── api/
+│   │   └── httpClient.ts
+│   └── utils/
+│       └── formatDate.ts
+│
+├── main.tsx                     # Entry point
+└── index.html                   # HTML base
+
 ```

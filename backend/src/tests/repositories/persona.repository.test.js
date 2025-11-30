@@ -5,6 +5,7 @@ jest.mock("../../prismaClient", () => {
     findUnique: jest.fn(),
     findFirst: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),   // 👈 NECESARIO
   };
 
   const mockPrivilegio = {
@@ -60,8 +61,20 @@ describe("Persona Repository", () => {
 
       mockPersona.findFirst.mockResolvedValue(null);
       mockPrivilegio.findFirst.mockResolvedValue(null);
-      mockPrivilegio.create.mockResolvedValue({ id_rol: 1, nombre_privilegio: "ESTUDIANTE" });
+
+      mockPrivilegio.create.mockResolvedValue({
+        id_rol: 1,
+        nombre_privilegio: "ESTUDIANTE"
+      });
+
       mockPersona.create.mockResolvedValue({
+        ...data,
+        id_persona: 1,
+      });
+
+      mockPersona.update.mockResolvedValue({}); // 👈 necesario
+
+      mockPersona.findUnique.mockResolvedValue({
         ...data,
         id_persona: 1,
         roles: [{ id_rol: 1, nombre_privilegio: "ESTUDIANTE" }],
@@ -72,6 +85,7 @@ describe("Persona Repository", () => {
       expect(result).toHaveProperty("correo", "juan@mail.com");
       expect(result.roles).toHaveLength(1);
     });
+
 
     it("lanza error si la persona ya existe", async () => {
       mockPersona.findFirst.mockResolvedValue({ id_persona: 1 });

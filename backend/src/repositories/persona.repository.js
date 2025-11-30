@@ -1,61 +1,40 @@
 // src/repositories/persona.repository.js
 const prisma = require('../prismaClient')
 
-/**
- * Busca una persona por correo (incluye roles y privilegio)
- */
 async function findByCorreo(correo) {
   return prisma.persona.findUnique({
     where: { correo },
-   include: { roles: true },
-  });
+    include: { roles: true },
+  })
 }
 
-
 async function createPersona(data) {
-
-
+  // 1. Verificar si ya existe persona con ese correo
   const existing = await prisma.persona.findFirst({
      where: { correo: data.correo },
   });
   if (existing) throw new Error("El usuario con este correo ya existe");
-
- 
-  // Si el rol ya existe, conectarlo, si no, crearlo
-const rolNombre = data.nombre_privilegio || "ESTUDIANTE";
-
-let rol = await prisma.privilegio_usuario.findFirst({
-  where: { nombre_privilegio: rolNombre },
-});
-
-if (!rol) {
-  rol = await prisma.privilegio_usuario.create({
-    data: { nombre_privilegio: rolNombre },
-  });
-}
 
   const persona = await prisma.persona.create({
     data: {
       nombres: data.nombres,
       apellidos: data.apellidos,
       correo: data.correo,
-      telefono: data.telefono,
-      password: data.password,
-      roles: {
-        connect: { id_rol: rol.id_rol },
-      },
+      password: data.password ?? null,      
     },
-    include: { roles: true },
+     include: { roles: false },
   });
 
-  return persona
+  // 6. Devolver persona con sus roles ya conectados
+  const personaConRoles = await prisma.persona.findUnique({
+    where: { id_persona: persona.id_persona },
+    include: { roles: true },
+  })
+
+  return personaConRoles
 }
 
 module.exports = {
   findByCorreo,
   createPersona,
-  // findByCi eliminado; si algún archivo lo usa, hay que quitar esa llamada
 }
-
-
-module.exports = { findByCorreo, createPersona };
