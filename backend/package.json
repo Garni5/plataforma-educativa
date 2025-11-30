@@ -4,12 +4,8 @@
   "description": "hola mundo",
   "main": "index.js",
   "scripts": {
-<<<<<<< HEAD
-    "test": "jest --coverage",
-=======
     "lint": "eslint . --ext .js",
     "test": "jest",
->>>>>>> 93be5b2fd2d9c13544efad248ba5371531035f85
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
