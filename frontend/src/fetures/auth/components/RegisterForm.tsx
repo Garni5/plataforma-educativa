@@ -104,6 +104,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitted(true)
+
     const eMap = validate(form)
     setErrors(eMap)
     if (Object.keys(eMap).length) return
@@ -111,6 +112,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
     try {
       setLoading(true)
       setServerError(null)
+
       // solo enviamos lo necesario al backend
       const payload: Persona = {
         nombres: form.nombres,
@@ -119,7 +121,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
         password: form.password,
       }
 
-      const API_URL = import.meta.env.VITE_BACKEND_URL;
+      const API_URL = import.meta.env.VITE_BACKEND_URL
 
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -128,11 +130,25 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
       })
 
       const data = (await res.json()) as ResponseData
+
       if (!res.ok) {
         setServerError(data?.message || 'Error al registrar')
         return
       }
+
       onSuccess?.(data)
+
+      // 🔹 Limpiar formulario después de registro exitoso
+      setForm({
+        nombres: '',
+        apellidos: '',
+        correo: '',
+        password: '',
+        confirmarPassword: '',
+      })
+      setErrors({})
+      setSubmitted(false)
+      setServerError(null)
     } catch {
       setServerError('Error de red')
     } finally {
