@@ -14,15 +14,18 @@ async function createPersona(data) {
      where: { correo: data.correo },
   });
   if (existing) throw new Error("El usuario con este correo ya existe");
-
+  const rolesData = data.roles && data.roles.length > 0
+    ? { connect: data.roles.map(id_rol => ({ id_rol })) }
+    : undefined;
   const persona = await prisma.persona.create({
     data: {
       nombres: data.nombres,
       apellidos: data.apellidos,
       correo: data.correo,
-      password: data.password ?? null,      
+      password: data.password ?? null, 
+      roles: rolesData,     
     },
-     include: { roles: false },
+     include: { roles: true },
   });
 
   // 6. Devolver persona con sus roles ya conectados

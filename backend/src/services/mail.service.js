@@ -1,13 +1,10 @@
 const nodemailer = require('nodemailer');
 
-
 const transporter = nodemailer.createTransport({
   service: 'gmail',
-
-
   auth: {
-    user: 'jhonnyrojasflo@gmail.com',        // tu correo
-    pass: 'audvtcsvctmomzad', // contraseña de aplicación
+    user: 'jhonnyrojasflo@gmail.com',     
+    pass: 'audvtcsvctmomzad', 
   },
 });
 
@@ -16,11 +13,29 @@ transporter.verify((error, success) => {
   else console.log('Servidor listo para enviar correos con Gmail:', success);
 });
 
-/* const info = await transporter.sendMail({
-  from: 'jhonnyrojasflo@gmail.com',
-  to: 'jhonnyrojasflo@gmail.com',
-  subject: 'Hello ✔',
-  text: 'Hello world?',
-  html: '<b>Hello world?</b>',
-}); */
-module.exports = transporter;
+async function sendMail(persona, roles) {
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; background-color: #f5f5f5;">
+      <h1 style="color: #4CAF50;">¡Hola ${persona.nombres} ${persona.apellidos}!</h1>
+      <p>Se te han asignado los siguientes roles: <b>${roles.join(', ')}</b>.</p>
+      <a href="https://tusitio.com" style="display:inline-block;padding:10px 20px;background-color:#4CAF50;color:white;text-decoration:none;border-radius:5px;">Visitar sitio</a>
+    </div>
+  `;
+
+  try {
+    const info = await transporter.sendMail({
+      from: '"Mi App" <jhonnyrojasflo@gmail.com>',
+      to: persona.correo,
+      subject: 'Nuevos roles asignados',
+      html: htmlContent,
+    });
+
+    return info;
+  } catch (err) {
+    console.error('Error al enviar correo:', err);
+    throw err;
+  }
+}
+module.exports = {  
+  sendMail,
+};

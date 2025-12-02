@@ -121,7 +121,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
         password: form.password,
       }
 
-      const API_URL = import.meta.env.VITE_BACKEND_URL
+      const API_URL = import.meta.env.VITE_API_BASE_URL
 
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -249,7 +249,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: (d: ResponseDa
          <button
           type="button"
           className="btn-primary "
-         onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`}
+         onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`}
 
         >
           
