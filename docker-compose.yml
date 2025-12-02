@@ -24,7 +24,7 @@ services:
     volumes:
       - ./backend:/app        # monta tu código local dentro del contenedor
       - /app/node_modules 
-    command: sh -c "npx prisma migrate deploy && npm run dev"
+    command: sh -c "npx prisma migrate dev --name init && npm run dev"
 
   frontend:
     build: ./frontend
@@ -38,6 +38,6 @@ services:
     volumes:
       - ./frontend:/app       # monta tu código local
       - /app/node_modules
-
+    command: npm run dev -- --host
 volumes:
   db-data:
