@@ -12,13 +12,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v3
       with:
-        service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v3
+      with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Build and push image
+    - name: Build and push image (sin Dockerfile)
       run: |
         gcloud builds submit --pack image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/app
 
