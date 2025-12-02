@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { MdVideoLibrary, MdDescription, MdSlideshow, MdAudiotrack, MdAdd, MdDelete, MdDownload, MdSubtitles } from 'react-icons/md';
 import './ProfesorEditorPage.css';
 
 interface Recurso {
@@ -51,12 +52,12 @@ const ProfesorEditorPage = () => {
 
   const activeTopic = topicos.find(t => t.id_topico === activeTopicId);
 
-  // Iconos por tipo
-  const icons = {
-    video: '🎥',
-    document: '📄',
-    slides: '🎞️',
-    audio: '🎵'
+  // Iconos por tipo (usando react-icons)
+  const iconComponents = {
+    video: <MdVideoLibrary size={24} />,
+    document: <MdDescription size={24} />,
+    slides: <MdSlideshow size={24} />,
+    audio: <MdAudiotrack size={24} />
   };
 
   const labels = {
@@ -164,6 +165,7 @@ const ProfesorEditorPage = () => {
       setError('Error al cargar tópicos: ' + err.message);
       console.error(err);
     }
+  };
 
   // Agregar nuevo tópico
   const handleAddTopic = async () => {
@@ -438,7 +440,8 @@ const ProfesorEditorPage = () => {
             onClick={handleAddTopic}
             className="profesor-btn profesor-btn-success"
           >
-            ➕ Agregar Tópico
+            <MdAdd size={20} style={{ marginRight: '5px' }} />
+            Agregar Tópico
           </button>
         </div>
       </div>
@@ -455,7 +458,8 @@ const ProfesorEditorPage = () => {
             className="profesor-btn profesor-btn-primary"
             disabled={!activeTopicId}
           >
-            ➕ Agregar Recurso
+            <MdAdd size={20} style={{ marginRight: '5px' }} />
+            Agregar Recurso
           </button>
         </div>
 
@@ -466,14 +470,14 @@ const ProfesorEditorPage = () => {
               <div key={resource.id_recurso} className="profesor-resource-card">
                 <div className="profesor-resource-header">
                   <div className="profesor-resource-icon">
-                    {icons[resource.tipo]}
+                    {iconComponents[resource.tipo]}
                   </div>
                   <button
                     onClick={() => handleDeleteResource(resource.id_recurso)}
                     className="profesor-btn-delete"
                     title="Eliminar"
                   >
-                    🗑️
+                    <MdDelete size={20} />
                   </button>
                 </div>
 
@@ -510,7 +514,8 @@ const ProfesorEditorPage = () => {
                       className="profesor-btn profesor-btn-small"
                       title="Descargar"
                     >
-                      ⬇️ Descargar
+                      <MdDownload size={18} style={{ marginRight: '5px' }} />
+                      Descargar
                     </button>
                   </div>
                 )}
@@ -523,8 +528,9 @@ const ProfesorEditorPage = () => {
                         resource.tieneTranscripcion ? 'active' : ''
                       }`}
                     >
+                      <MdSubtitles size={16} style={{ marginRight: '5px' }} />
                       {resource.tieneTranscripcion
-                        ? '✓ Con transcripción'
+                        ? 'Con transcripción'
                         : 'Sin transcripción'}
                     </button>
                   </div>
@@ -563,13 +569,13 @@ const ProfesorEditorPage = () => {
 
             {!selectedResourceType ? (
               <div className="profesor-resource-options">
-                {(Object.entries(icons) as Array<[keyof typeof icons, string]>).map(([type, icon]) => (
+                {(Object.keys(iconComponents) as Array<keyof typeof iconComponents>).map((type) => (
                   <div
                     key={type}
                     className="profesor-resource-option"
-                    onClick={() => setSelectedResourceType(type)}
+                    onClick={() => setSelectedResourceType(type as 'video' | 'document' | 'slides' | 'audio')}
                   >
-                    <span className="profesor-option-icon">{icon}</span>
+                    <span className="profesor-option-icon">{iconComponents[type]}</span>
                     <span className="profesor-option-label">{labels[type]}</span>
                   </div>
                 ))}
@@ -584,13 +590,13 @@ const ProfesorEditorPage = () => {
                 </button>
 
                 <div className="profesor-form-group">
-                  <label htmlFor="resourceTitle">Título del {labels[selectedResourceType].toLowerCase()}</label>
+                  <label htmlFor="resourceTitle">Título del {selectedResourceType ? labels[selectedResourceType].toLowerCase() : 'recurso'}</label>
                   <input
                     id="resourceTitle"
                     type="text"
                     value={resourceTitle}
                     onChange={(e) => setResourceTitle(e.target.value)}
-                    placeholder={`Ej: ${labels[selectedResourceType]} #1`}
+                    placeholder={`Ej: ${selectedResourceType ? labels[selectedResourceType] : 'recurso'} #1`}
                     className="profesor-input"
                   />
                 </div>
@@ -600,7 +606,7 @@ const ProfesorEditorPage = () => {
                   <input
                     id="resourceFile"
                     type="file"
-                    accept={fileAccept[selectedResourceType]}
+                    accept={selectedResourceType ? fileAccept[selectedResourceType] : '*'}
                     onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                     className="profesor-file-input"
                   />
@@ -616,7 +622,8 @@ const ProfesorEditorPage = () => {
                   className="profesor-btn profesor-btn-success profesor-btn-full"
                   disabled={!resourceTitle.trim() || !selectedFile}
                 >
-                  ✓ Agregar Recurso
+                  <MdAdd size={18} style={{ marginRight: '5px' }} />
+                  Agregar Recurso
                 </button>
               </div>
             )}
