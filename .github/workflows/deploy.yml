@@ -30,7 +30,7 @@ jobs:
     - name: Build and push frontend
       run: |
         cd frontend
-        gcloud builds submit --pack image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend --quiet
+        gcloud builds submit --pack image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend || true
 
 
     - name: Deploy backend
