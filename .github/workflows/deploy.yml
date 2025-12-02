@@ -24,7 +24,8 @@ jobs:
 
     - name: Build and push image (sin Dockerfile)
       run: |
-        gcloud builds submit --pack image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/app
+        gcloud builds submit --pack image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/app --quiet
+        
 
     - name: Deploy to Cloud Run
       run: |
