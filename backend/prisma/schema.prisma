@@ -24,6 +24,7 @@ model persona {
 
   // Relaciones
   roles rol_usuario[]
+  topicos topico[]
 }
 
 model rol_usuario {
@@ -45,4 +46,37 @@ model privilegio_usuario {
   rol rol_usuario   @relation(fields: [id_rol], references: [id_rol])
 
   @@map("privilegio_usuario")
+}
+
+model topico {
+  id_topico    Int       @id @default(autoincrement())
+  titulo       String    @db.VarChar(200)
+  descripcion  String?   @db.Text
+  id_persona   Int
+  persona      persona   @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade)
+  
+  recursos     recurso[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("topico")
+}
+
+model recurso {
+  id_recurso    Int       @id @default(autoincrement())
+  titulo        String    @db.VarChar(200)
+  descripcion   String?   @db.Text
+  tipo          String    @db.VarChar(50) // 'video', 'document', 'slides', 'audio'
+  url_archivo   String?   @db.Text
+  nombreArchivo String?   @db.VarChar(255)
+  tamanioArchivo Int?     // En bytes
+  
+  id_topico     Int
+  topico        topico    @relation(fields: [id_topico], references: [id_topico], onDelete: Cascade)
+  
+  tieneTranscripcion Boolean @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("recurso")
 }
