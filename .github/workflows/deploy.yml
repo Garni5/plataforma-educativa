@@ -22,15 +22,29 @@ jobs:
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Build and push image (sin Dockerfile)
+    - name: Build and push backend
       run: |
-        gcloud builds submit --pack image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/app --quiet
-        
+        cd backend
+        gcloud builds submit --pack image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend --quiet
 
-    - name: Deploy to Cloud Run
+    - name: Build and push frontend
       run: |
-        gcloud run deploy app \
-          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/app \
-          --region us-central1 \
-          --allow-unauthenticated \
-          --platform managed
+        cd frontend
+        gcloud builds submit --pack image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend --quiet
+
+
+    - name: Deploy backend
+      run: |
+        gcloud run deploy backend \
+        --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend \
+        --region us-central1 \
+        --allow-unauthenticated \
+        --platform managed
+
+    - name: Deploy frontend
+      run: |
+        gcloud run deploy frontend \
+        --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend \
+        --region us-central1 \
+        --allow-unauthenticated \
+        --platform managed
