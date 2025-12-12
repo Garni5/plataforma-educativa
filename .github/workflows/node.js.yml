@@ -2,9 +2,9 @@ name: CI (frontend & backend)
 
 on:
   push:
-    branches: ["main", "saul", "jhonny", "tarea1(11/11/25)", "inicioSesionGoogle"]
+    branches: ["main", "saul", "jhonny", "tarea1(11/11/25)", "inicioSesionSa"]
   pull_request:
-    branches: ["main", "saul", "jhonny", "tarea1(11/11/25)", "inicioSesionGoogle"]
+    branches: ["main", "saul", "jhonny", "tarea1(11/11/25)", "inicioSesionSa"]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
