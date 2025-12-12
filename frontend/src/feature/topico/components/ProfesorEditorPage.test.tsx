@@ -2,13 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi, beforeEach, afterEach, describe, test, expect } from 'vitest'
 import ProfesorEditorPage from './ProfesorEditorPage'
 
-// Mock del fetch con tipos apropiados
-interface MockResponse {
-  ok: boolean
-  status: number
-  json: () => Promise<unknown>
-}
-
+// Mock del fetch
 const mockFetch = vi.fn()
 global.fetch = mockFetch as unknown as typeof fetch
 
