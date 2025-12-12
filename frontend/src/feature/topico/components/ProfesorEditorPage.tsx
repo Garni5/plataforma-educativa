@@ -101,25 +101,6 @@ const ProfesorEditorPage = () => {
     }
   };
 
-  // Cargar tópicos al montar el componente
-  useEffect(() => {
-    const verificarAutenticacion = async () => {
-      setLoading(true);
-      setError('');
-
-      const usuarioGuardado = obtenerUsuario();
-      if (!usuarioGuardado || !getToken()) {
-        setNoAuthorized(true);
-        setLoading(false);
-        return;
-      }
-
-      setUser(usuarioGuardado);
-      await cargarTopicos();
-    };
-    verificarAutenticacion();
-  }, []);
-
   // Cargar tópicos desde el backend (solo del usuario autenticado)
   const cargarTopicos = async () => {
     try {
@@ -156,13 +137,34 @@ const ProfesorEditorPage = () => {
           setActiveTopicId(data.data[0].id_topico);
         }
       }
-    } catch (err: any) {
-      setError('Error al cargar tópicos: ' + err.message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError('Error al cargar tópicos: ' + errorMessage);
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  // Cargar tópicos al montar el componente
+  useEffect(() => {
+    const verificarAutenticacion = async () => {
+      setLoading(true);
+      setError('');
+
+      const usuarioGuardado = obtenerUsuario();
+      if (!usuarioGuardado || !getToken()) {
+        setNoAuthorized(true);
+        setLoading(false);
+        return;
+      }
+
+      setUser(usuarioGuardado);
+      await cargarTopicos();
+    };
+    verificarAutenticacion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Manejar login
   const handleLogin = async (e: React.FormEvent) => {
@@ -195,8 +197,9 @@ const ProfesorEditorPage = () => {
       setEmail('');
       setPassword('');
       await cargarTopicos();
-    } catch (err: any) {
-      setLoginError(err.message || 'Error al iniciar sesión');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesión';
+      setLoginError(errorMessage);
     } finally {
       setIsLoggingIn(false);
     }
@@ -245,8 +248,9 @@ const ProfesorEditorPage = () => {
         setActiveTopicId(nuevoTopico.id_topico);
         setNewTopicTitle('');
       }
-    } catch (err: any) {
-      setError('Error al crear tópico: ' + err.message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError('Error al crear tópico: ' + errorMessage);
     }
   };
 
@@ -315,8 +319,9 @@ const ProfesorEditorPage = () => {
         setResourceTitle('');
         setSelectedFile(null);
       }
-    } catch (err: any) {
-      setError('Error al agregar recurso: ' + err.message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError('Error al agregar recurso: ' + errorMessage);
     }
   };
 
@@ -346,8 +351,9 @@ const ProfesorEditorPage = () => {
         }
         return t;
       }));
-    } catch (err: any) {
-      setError('Error al eliminar recurso: ' + err.message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError('Error al eliminar recurso: ' + errorMessage);
     }
   };
 
@@ -383,8 +389,9 @@ const ProfesorEditorPage = () => {
           return t;
         }));
       }
-    } catch (err: any) {
-      setError('Error al actualizar transcripción: ' + err.message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError('Error al actualizar transcripción: ' + errorMessage);
     }
   };
 

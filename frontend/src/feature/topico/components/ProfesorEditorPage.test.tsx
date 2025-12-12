@@ -1,16 +1,23 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { vi, beforeEach, afterEach } from 'vitest'
+import { vi, beforeEach, afterEach, describe, test, expect } from 'vitest'
 import ProfesorEditorPage from './ProfesorEditorPage'
 
-// Mock del fetch
-global.fetch = vi.fn()
+// Mock del fetch con tipos apropiados
+interface MockResponse {
+  ok: boolean
+  status: number
+  json: () => Promise<unknown>
+}
+
+const mockFetch = vi.fn()
+global.fetch = mockFetch as unknown as typeof fetch
 
 describe('ProfesorEditorPage', () => {
   beforeEach(() => {
     // Limpiar localStorage antes de cada test
     localStorage.clear()
     vi.clearAllMocks()
-
+    
     // Mock de localStorage
     localStorage.setItem('token', 'test-token')
     localStorage.setItem('userId', '1')
@@ -43,7 +50,7 @@ describe('ProfesorEditorPage', () => {
       ]
     }
 
-    ;(global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => mockTopicos
@@ -73,13 +80,15 @@ describe('ProfesorEditorPage', () => {
       }
     }
 
-    ;(global.fetch as any)
+    mockFetch
       .mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => mockTopicos
       })
       .mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => mockNuevoTopico
       })
 
@@ -101,9 +110,10 @@ describe('ProfesorEditorPage', () => {
   })
 
   test('maneja error de autenticación (401)', async () => {
-    ;(global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       status: 401,
-      ok: false
+      ok: false,
+      json: async () => ({})
     })
 
     render(<ProfesorEditorPage />)
@@ -114,7 +124,7 @@ describe('ProfesorEditorPage', () => {
   })
 
   test('muestra error cuando falla al cargar tópicos', async () => {
-    ;(global.fetch as any).mockRejectedValueOnce(
+    mockFetch.mockRejectedValueOnce(
       new Error('Error de red')
     )
 
@@ -131,8 +141,9 @@ describe('ProfesorEditorPage', () => {
       data: []
     }
 
-    ;(global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: async () => mockTopicos
     })
 
