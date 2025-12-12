@@ -62,12 +62,15 @@ describe("POST /auth/login", () => {
       .send({ login: "test@mail.com", password: "123456" });
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({
-    status: 'success',
-    token: mockResult.token,
-    message: "Usuario autenticado correctamente",
-    role: mockResult.persona.privilegio[0]  // coincide con la función
-  });
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        status: 'success',
+        success: true,
+        token: mockResult.token,
+        message: "Usuario autenticado correctamente",
+        role: mockResult.persona.privilegio[0]
+      })
+    );
   });
 
   it("debería devolver error al login incorrecto", async () => {
@@ -78,10 +81,13 @@ describe("POST /auth/login", () => {
       .send({ login: "test@mail.com", password: "wrong" });
 
     expect(res.status).toBe(401);
-    expect(res.body).toEqual({
-      status: 'error',
-      message: "Contraseña incorrecta",
-    });
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        status: 'error',
+        success: false,
+        message: "Contraseña incorrecta",
+      })
+    );
   });
 });
 

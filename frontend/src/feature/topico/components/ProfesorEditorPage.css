@@ -1,148 +1,561 @@
-/* Estilos de las tarjetas */
-.topic-card {
-  width: 250px;
-  background-color: #2c1a63;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+/* Container Principal */
+.profesor-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Header */
+.profesor-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  margin: 8px;
-  text-align: center;
-  transition: transform 0.3s ease;
+  padding: 30px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.topic-card:hover {
-  transform: translateY(-5px);
+.profesor-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
 }
 
-.topic-card-body {
-  margin-bottom: 12px;
+.profesor-header p {
+  margin: 5px 0;
+  font-size: 16px;
+  opacity: 0.9;
 }
 
-/* Estilos para los botones con imágenes */
-.topic-card-actions {
+/* Topics Section */
+.profesor-topics-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.profesor-topics-buttons {
   display: flex;
-  justify-content: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-.action-btn {
+.profesor-topic-btn {
+  padding: 10px 20px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.profesor-topic-btn:hover {
+  border-color: #667eea;
+  background-color: #f0f0ff;
+}
+
+.profesor-topic-btn.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.profesor-add-topic {
+  display: flex;
+  gap: 10px;
+}
+
+.profesor-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.profesor-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Buttons */
+.profesor-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.profesor-btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.profesor-btn-primary:hover:not(:disabled) {
+  background: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.profesor-btn-success {
+  background: #48bb78;
+  color: white;
+}
+
+.profesor-btn-success:hover {
+  background: #38a169;
+}
+
+.profesor-btn-small {
+  padding: 8px 15px;
+  font-size: 12px;
+}
+
+.profesor-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Content Area */
+.profesor-content-area {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.profesor-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #eee;
+}
+
+.profesor-content-title h2 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.profesor-content-title p {
+  margin: 0;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Resources Grid */
+.profesor-resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.profesor-resource-card {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.profesor-resource-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.profesor-resource-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f0f0f0;
+}
+
+.profesor-resource-icon {
+  color: #667eea;
+  font-size: 24px;
+}
+
+.profesor-btn-delete {
   background: none;
   border: none;
-  padding: 8px;
+  color: #e53935;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.profesor-btn-delete:hover {
+  color: #c62828;
+}
+
+.profesor-resource-info {
+  padding: 15px;
+  flex: 1;
+}
+
+.profesor-resource-type {
+  margin: 0;
+  color: #667eea;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.profesor-resource-title {
+  margin: 8px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.profesor-resource-description {
+  margin: 8px 0 0 0;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.profesor-resource-actions {
+  padding: 10px 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.profesor-resource-preview {
+  margin-bottom: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #000;
+}
+
+.profesor-resource-preview video,
+.profesor-resource-preview audio {
+  width: 100%;
+  display: block;
+}
+
+.profesor-resource-transcription {
+  padding: 10px 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.profesor-transcription-btn {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.3s ease;
 }
 
-.action-btn img {
-  width: 20px;  /* Ajusta el tamaño de la imagen */
-  height: 20px; /* Ajusta el tamaño de la imagen */
-  object-fit: contain;  /* Asegura que la imagen mantenga su aspecto */
-  transition: opacity 0.3s ease;
+.profesor-transcription-btn:hover {
+  background: #f0f0f0;
 }
 
-.action-btn:hover img {
-  opacity: 0.7;  /* Efecto visual cuando el usuario pasa el mouse */
-}
-
-.show-more-btn {
-  background-color: #2c1a63;
+.profesor-transcription-btn.active {
+  background: #667eea;
   color: white;
-  padding: 10px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin: 20px auto;
-  display: block;
-  border: none;
-  transition: background-color 0.3s;
+  border-color: #667eea;
 }
 
-.show-more-btn:hover {
-  background-color: #a36adf;
+/* Empty State */
+.profesor-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
 }
 
-.add-topic-btn {
-  background-color: #2c1a63;
-  color: white;
-  font-size: 32px;
-  border-radius: 6px;
-  padding: 10px;
-  cursor: pointer;
-  width: 250px;
-  margin: 20px auto;
-  display: block;
+.profesor-empty-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
 }
 
-.add-topic-btn:hover {
-  background-color: #a36adf;
+.profesor-empty-text {
+  font-size: 16px;
+  margin: 0;
 }
 
-/* ---- Modal ---- */
-.modal-overlay {
+/* Modal */
+.profesor-modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.65);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
-.modal {
-  width: 450px;
-  background-color: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+.profesor-modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.modal-header {
-  background-color: #2c1a63;
-  color: white;
-  padding: 12px 16px;
-}
-
-.modal-header h3 {
-  margin: 0;
-}
-
-.modal-input {
-  width: calc(100% - 32px);
-  margin: 16px;
-  padding: 8px 10px;
-  border: none;
-  background-color: #dedede;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.modal-actions {
+.profesor-modal-header {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 16px;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
 }
 
-.btn-primary {
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: 6px;
+.profesor-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.profesor-close-btn {
+  background: none;
   border: none;
-  background-color: #2c1a63;
-  color: white;
+  font-size: 24px;
   cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.profesor-close-btn:hover {
+  color: #333;
+}
+
+.profesor-resource-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  padding: 30px 20px;
+}
+
+.profesor-resource-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.profesor-resource-option:hover {
+  border-color: #667eea;
+  background: #f0f0ff;
+  transform: translateY(-4px);
+}
+
+.profesor-option-icon {
+  font-size: 32px;
+  color: #667eea;
+}
+
+.profesor-option-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+}
+
+.profesor-resource-form {
+  padding: 20px;
+}
+
+.profesor-file-input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px dashed #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.profesor-file-info {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+  padding: 10px;
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.profesor-modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid #eee;
+}
+
+/* Login Styles */
+.profesor-login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.profesor-login-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 450px;
+  overflow: hidden;
+}
+
+.profesor-login-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px 30px;
+  text-align: center;
+}
+
+.profesor-login-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+}
+
+.profesor-login-header p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.profesor-login-form {
+  padding: 40px 30px;
+}
+
+.profesor-form-group {
+  margin-bottom: 20px;
+}
+
+.profesor-form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.profesor-form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.profesor-form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.profesor-error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border-left: 4px solid #c33;
+}
+
+.profesor-login-form .profesor-btn-primary {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 20px;
+  font-size: 16px;
   font-weight: 600;
 }
 
-.btn-danger {
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  background-color: #e53935;
-  color: white;
-  cursor: pointer;
+.profesor-login-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.profesor-login-footer a {
+  color: #667eea;
+  text-decoration: none;
   font-weight: 600;
+}
+
+.profesor-login-footer a:hover {
+  text-decoration: underline;
+}
+
+.profesor-btn-logout {
+  background: #e74c3c;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+}
+
+.profesor-btn-logout:hover {
+  background: #c0392b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profesor-container {
+    padding: 10px;
+  }
+
+  .profesor-content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .profesor-resources-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profesor-resource-options {
+    grid-template-columns: 1fr;
+  }
+
+  .profesor-modal-content {
+    width: 95%;
+  }
+
+  .profesor-login-card {
+    max-width: 100%;
+  }
 }

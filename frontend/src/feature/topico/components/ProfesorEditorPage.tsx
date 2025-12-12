@@ -35,7 +35,7 @@ interface User {
   correo: string;
 }
 
-const API_BASE = 'http://localhost:3000/api/protected';
+const API_BASE = 'http://localhost:5000/api/protected';
 
 const ProfesorEditorPage = () => {
   const [topicos, setTopicos] = useState<Topico[]>([]);
@@ -49,6 +49,10 @@ const ProfesorEditorPage = () => {
   const [error, setError] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [noAuthorized, setNoAuthorized] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const activeTopic = topicos.find(t => t.id_topico === activeTopicId);
 
@@ -99,12 +103,7 @@ const ProfesorEditorPage = () => {
 
   // Cargar tópicos al montar el componente
   useEffect(() => {
-    verificarAutenticacion();
-  }, []);
-
-  // Verificar que el usuario esté autenticado
-  const verificarAutenticacion = async () => {
-    try {
+    const verificarAutenticacion = async () => {
       setLoading(true);
       setError('');
 
@@ -117,13 +116,9 @@ const ProfesorEditorPage = () => {
 
       setUser(usuarioGuardado);
       await cargarTopicos();
-    } catch (err: any) {
-      setError('Error de autenticación: ' + err.message);
-      setNoAuthorized(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    verificarAutenticacion();
+  }, []);
 
   // Cargar tópicos desde el backend (solo del usuario autenticado)
   const cargarTopicos = async () => {
@@ -164,6 +159,46 @@ const ProfesorEditorPage = () => {
     } catch (err: any) {
       setError('Error al cargar tópicos: ' + err.message);
       console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Manejar login
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    setIsLoggingIn(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.token) {
+        throw new Error(data.message || 'Error al iniciar sesión');
+      }
+
+      // Guardar token y datos del usuario
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.user?.id_persona || '');
+      localStorage.setItem('userName', data.user?.nombres || '');
+      localStorage.setItem('userEmail', data.user?.correo || '');
+
+      // Establecer usuario y recargar tópicos
+      setUser(data.user);
+      setNoAuthorized(false);
+      setEmail('');
+      setPassword('');
+      await cargarTopicos();
+    } catch (err: any) {
+      setLoginError(err.message || 'Error al iniciar sesión');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -365,6 +400,15 @@ const ProfesorEditorPage = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    setUser(null);
+    setNoAuthorized(true);
+    setEmail('');
+    setPassword('');
+    setTopicos([]);
+  };
+
   if (loading) {
     return (
       <div className="profesor-container">
@@ -378,23 +422,59 @@ const ProfesorEditorPage = () => {
   if (noAuthorized || !user) {
     return (
       <div className="profesor-container">
-        <div className="profesor-header">
-          <h1>❌ Acceso Denegado</h1>
-          <p>Debes iniciar sesión para acceder a esta página</p>
-          <button
-            onClick={() => window.location.href = '/login'}
-            style={{
-              marginTop: '20px',
-              padding: '10px 20px',
-              background: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Ir al Login
-          </button>
+        <div className="profesor-login-wrapper">
+          <div className="profesor-login-card">
+            <div className="profesor-login-header">
+              <h1>🎓 Editor de Contenido</h1>
+              <p>Gestiona tus tópicos y recursos educativos</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="profesor-login-form">
+              <div className="profesor-form-group">
+                <label htmlFor="email">Correo Electrónico</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="correo@ejemplo.com"
+                  className="profesor-input"
+                  required
+                />
+              </div>
+
+              <div className="profesor-form-group">
+                <label htmlFor="password">Contraseña</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Contraseña"
+                  className="profesor-input"
+                  required
+                />
+              </div>
+
+              {loginError && (
+                <div className="profesor-error-message">
+                  ❌ {loginError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="profesor-btn profesor-btn-primary"
+                disabled={isLoggingIn}
+              >
+                {isLoggingIn ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              </button>
+
+              <div className="profesor-login-footer">
+                <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     );
@@ -407,8 +487,14 @@ const ProfesorEditorPage = () => {
         <div>
           <h1>Editor de Contenido del Curso</h1>
           <p>Gestiona tópicos y recursos para tus estudiantes</p>
-          {user && <p style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>👤 {user.nombres}</p>}
+          {user && <p style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>👤 {user.nombres} ({user.correo})</p>}
         </div>
+        <button
+          onClick={handleLogout}
+          className="profesor-btn profesor-btn-logout"
+        >
+          Cerrar Sesión
+        </button>
         {error && <div style={{ color: 'red', marginTop: '10px', marginBottom: '10px' }}>{error}</div>}
       </div>
 
@@ -582,49 +668,32 @@ const ProfesorEditorPage = () => {
               </div>
             ) : (
               <div className="profesor-resource-form">
-                <button
-                  onClick={() => setSelectedResourceType(null)}
-                  className="profesor-back-btn"
-                >
-                  ← Volver
-                </button>
-
-                <div className="profesor-form-group">
-                  <label htmlFor="resourceTitle">Título del {selectedResourceType ? labels[selectedResourceType].toLowerCase() : 'recurso'}</label>
-                  <input
-                    id="resourceTitle"
-                    type="text"
-                    value={resourceTitle}
-                    onChange={(e) => setResourceTitle(e.target.value)}
-                    placeholder={`Ej: ${selectedResourceType ? labels[selectedResourceType] : 'recurso'} #1`}
-                    className="profesor-input"
-                  />
+                <input
+                  type="text"
+                  value={resourceTitle}
+                  onChange={(e) => setResourceTitle(e.target.value)}
+                  placeholder={`Título del ${labels[selectedResourceType]}`}
+                  className="profesor-input"
+                />
+                <input
+                  type="file"
+                  accept={fileAccept[selectedResourceType]}
+                  onChange={(e) => e.target.files && setSelectedFile(e.target.files[0])}
+                  className="profesor-file-input"
+                />
+                {selectedFile && (
+                  <p className="profesor-file-info">
+                    {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                  </p>
+                )}
+                <div className="profesor-modal-footer">
+                  <button
+                    onClick={handleAddResource}
+                    className="profesor-btn profesor-btn-primary"
+                  >
+                    Guardar Recurso
+                  </button>
                 </div>
-
-                <div className="profesor-form-group">
-                  <label htmlFor="resourceFile">Selecciona el archivo</label>
-                  <input
-                    id="resourceFile"
-                    type="file"
-                    accept={selectedResourceType ? fileAccept[selectedResourceType] : '*'}
-                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                    className="profesor-file-input"
-                  />
-                  {selectedFile && (
-                    <p className="profesor-file-info">
-                      ✓ {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  onClick={handleAddResource}
-                  className="profesor-btn profesor-btn-success profesor-btn-full"
-                  disabled={!resourceTitle.trim() || !selectedFile}
-                >
-                  <MdAdd size={18} style={{ marginRight: '5px' }} />
-                  Agregar Recurso
-                </button>
               </div>
             )}
           </div>

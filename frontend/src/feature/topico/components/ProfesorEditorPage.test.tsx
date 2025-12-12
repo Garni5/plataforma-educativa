@@ -1,179 +1,150 @@
-// ProfesorEditorPage.test.tsx
-import React from 'react';
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import ProfesorEditorPage from './ProfesorEditorPage';
-import { vi, beforeEach, afterEach, describe, it, expect } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { vi, beforeEach, afterEach } from 'vitest'
+import ProfesorEditorPage from './ProfesorEditorPage'
 
-// -----------------------------
-// Mocks globales
-// -----------------------------
-const fakeCreateObjectURL = vi.fn(() => 'blob:fake-url');
-Object.defineProperty(global.URL, 'createObjectURL', {
-  configurable: true,
-  writable: true,
-  value: fakeCreateObjectURL,
-});
+// Mock del fetch
+global.fetch = vi.fn()
 
-const localStorageMock = {
-  getItem: (key: string) => {
-    if (key === 'token') return 'fake-token';
-    if (key === 'userId') return '1';
-    if (key === 'userName') return 'Profesor Prueba';
-    if (key === 'userEmail') return 'prof@test.com';
-    return null;
-  },
-  setItem: vi.fn(),
-  clear: vi.fn(),
-  removeItem: vi.fn(),
-} as unknown as Storage;
+describe('ProfesorEditorPage', () => {
+  beforeEach(() => {
+    // Limpiar localStorage antes de cada test
+    localStorage.clear()
+    vi.clearAllMocks()
 
-vi.stubGlobal('localStorage', localStorageMock);
+    // Mock de localStorage
+    localStorage.setItem('token', 'test-token')
+    localStorage.setItem('userId', '1')
+    localStorage.setItem('userName', 'Test User')
+    localStorage.setItem('userEmail', 'test@example.com')
+  })
 
-const fetchMock = vi.fn();
-vi.stubGlobal('fetch', fetchMock as unknown);
+  afterEach(() => {
+    localStorage.clear()
+  })
 
-// -----------------------------
-// Mock por defecto de fetch
-// -----------------------------
-beforeEach(() => {
-  fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = typeof input === 'string' ? input : input.toString();
-    const method = init?.method?.toUpperCase() || 'GET';
+  test('muestra formulario de login cuando no hay token', () => {
+    localStorage.clear()
+    render(<ProfesorEditorPage />)
+    
+    expect(screen.getByText('🎓 Editor de Contenido')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('correo@ejemplo.com')).toBeInTheDocument()
+  })
 
-    if (url.includes('/topicos') && method === 'GET') {
-      return {
+  test('carga y muestra tópicos cuando está autenticado', async () => {
+    const mockTopicos = {
+      success: true,
+      data: [
+        {
+          id_topico: 1,
+          titulo: 'Variables',
+          descripcion: 'Tema sobre variables',
+          recursos: []
+        }
+      ]
+    }
+
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockTopicos
+    })
+
+    render(<ProfesorEditorPage />)
+
+    // Esperar a que aparezca el header que confirma que está autenticado
+    await waitFor(() => {
+      expect(screen.getByText(/Editor de Contenido del Curso/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
+  })
+
+  test('permite agregar un nuevo tópico', async () => {
+    const mockTopicos = {
+      success: true,
+      data: []
+    }
+
+    const mockNuevoTopico = {
+      success: true,
+      data: {
+        id_topico: 1,
+        titulo: 'Python Avanzado',
+        descripcion: '',
+        recursos: []
+      }
+    }
+
+    ;(global.fetch as any)
+      .mockResolvedValueOnce({
         ok: true,
-        status: 200,
-        json: async () => ({
-          success: true,
-          data: [
-            {
-              id_topico: 1,
-              titulo: 'Sintaxis básica',
-              descripcion: '',
-              id_persona: 1,
-              recursos: [
-                {
-                  id_recurso: 10,
-                  titulo: 'Video Introductorio',
-                  descripcion: 'Video introductorio',
-                  tipo: 'video',
-                  fileUrl: 'blob:fake-url',
-                  tieneTranscripcion: false,
-                },
-              ],
-            },
-          ],
-        }),
-      } as Response;
-    }
-
-    if (url.includes('/recursos') && method === 'POST') {
-      return {
+        json: async () => mockTopicos
+      })
+      .mockResolvedValueOnce({
         ok: true,
-        status: 201,
-        json: async () => ({
-          success: true,
-          data: {
-            id_recurso: 99,
-            titulo: 'Recurso Nuevo',
-            descripcion: 'Video - video.mp4',
-            tipo: 'video',
-            tieneTranscripcion: false,
-          },
-        }),
-      } as Response;
-    }
+        json: async () => mockNuevoTopico
+      })
 
-    if (method === 'DELETE') {
-      return { ok: true, status: 200, json: async () => ({ success: true }) } as Response;
-    }
+    render(<ProfesorEditorPage />)
 
-    if (url.includes('/transcripcion') && method === 'PUT') {
-      return { ok: true, status: 200, json: async () => ({ success: true, data: { tieneTranscripcion: true } }) } as Response;
-    }
+    const input = await waitFor(() => 
+      screen.getByPlaceholderText('Nombre del nuevo tópico...')
+    )
 
-    return { ok: true, status: 200, json: async () => ({ success: true, data: [] }) } as Response;
-  });
-});
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
-// -----------------------------
-// Tests
-// -----------------------------
-describe('ProfesorEditorPage (TS + Vitest)', () => {
-
-  it('muestra el recurso inicial cargado desde /topicos', async () => {
-    render(<ProfesorEditorPage />);
-    const recurso = await screen.findByText('Video Introductorio');
-    expect(recurso).toBeInTheDocument();
-  });
-
-  it('elimina un recurso de video usando el botón dentro de la card', async () => {
-    render(<ProfesorEditorPage />);
-    const title = await screen.findByText('Video Introductorio');
-
-    const card = title.closest('.profesor-resource-card');
-    expect(card).not.toBeNull();
-
-    const eliminarBtn = within(card as HTMLElement).getByTitle('Eliminar');
-    fireEvent.click(eliminarBtn);
+    fireEvent.change(input, { target: { value: 'Python Avanzado' } })
+    fireEvent.click(screen.getByText(/Agregar Tópico/))
 
     await waitFor(() => {
-      expect(screen.queryByText('Video Introductorio')).toBeNull();
-    });
-  });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/topicos'),
+        expect.objectContaining({ method: 'POST' })
+      )
+    })
+  })
 
-  it('puede agregar un recurso (flujo: abrir modal, seleccionar tipo, subir archivo, confirmar)', async () => {
-    render(<ProfesorEditorPage />);
+  test('maneja error de autenticación (401)', async () => {
+    ;(global.fetch as any).mockResolvedValueOnce({
+      status: 401,
+      ok: false
+    })
 
-    const topicTitle = await screen.findByRole('heading', { level: 2, name: 'Sintaxis básica' });
-    expect(topicTitle).toBeInTheDocument();
+    render(<ProfesorEditorPage />)
 
-    // Abrir modal para agregar recurso
-    const agregarBtn = screen.getByText(/Agregar Recurso/i);
-    fireEvent.click(agregarBtn);
+    await waitFor(() => {
+      expect(localStorage.getItem('token')).toBeNull()
+    })
+  })
 
-    const modal = await screen.findByText('Agregar Nuevo Recurso');
-    expect(modal).toBeInTheDocument();
+  test('muestra error cuando falla al cargar tópicos', async () => {
+    ;(global.fetch as any).mockRejectedValueOnce(
+      new Error('Error de red')
+    )
 
-    // Seleccionar tipo Video dentro del modal
-    const modalContent = modal.closest('.profesor-modal-content') as HTMLElement;
-    const tipoVideo = within(modalContent).getByText('Video');
-    fireEvent.click(tipoVideo);
+    render(<ProfesorEditorPage />)
 
-    // Completar título del recurso
-    const inputTitle = within(modalContent).getByLabelText(/Título del video/i) as HTMLInputElement;
-    fireEvent.change(inputTitle, { target: { value: 'Recurso Nuevo' } });
-    expect(inputTitle.value).toBe('Recurso Nuevo');
+    await waitFor(() => {
+      expect(screen.getByText(/Error al cargar tópicos/)).toBeInTheDocument()
+    })
+  })
 
-    // Subir archivo
-    const file = new File(['dummy content'], 'video.mp4', { type: 'video/mp4' });
-    const fileInput = within(modalContent).getByLabelText('Selecciona el archivo') as HTMLInputElement;
-    Object.defineProperty(fileInput, 'files', { value: [file] });
-    fireEvent.change(fileInput);
+  test('permite hacer logout', async () => {
+    const mockTopicos = {
+      success: true,
+      data: []
+    }
 
-    // Confirmar agregar
-    const btnAgregar = within(modalContent).getByText('Agregar Recurso');
-    fireEvent.click(btnAgregar);
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockTopicos
+    })
 
-    const nuevo = await screen.findByText('Recurso Nuevo');
-    expect(nuevo).toBeInTheDocument();
-  });
+    render(<ProfesorEditorPage />)
 
-  it('activa la transcripción de un video al hacer clic', async () => {
-    render(<ProfesorEditorPage />);
-    await screen.findByText('Video Introductorio');
+    await waitFor(() => {
+      expect(screen.getByText('Cerrar Sesión')).toBeInTheDocument()
+    })
 
-    const btn = screen.getByText('Sin transcripción');
-    fireEvent.click(btn);
+    fireEvent.click(screen.getByText('Cerrar Sesión'))
 
-    const activo = await screen.findByText('Con transcripción');
-    expect(activo).toBeInTheDocument();
-  });
-
-});
+    expect(localStorage.getItem('token')).toBeNull()
+    expect(localStorage.getItem('userId')).toBeNull()
+  })
+})

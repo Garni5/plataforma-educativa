@@ -1,40 +1,49 @@
 import { useState } from 'react'
 import './LoginForm.css'
 
-interface PersonaResponse {
-  id_persona: number
-  nombres: string
-  apellidos: string
-  correo: string
+interface LoginFormProps {
+  onSuccess?: (data: LoginResponse) => void
 }
 
-interface BackendLoginData {
-  token: string
-  persona: PersonaResponse
-}
-
+// Respuesta completa del backend
 interface LoginResponse {
-  success: boolean
-  data: BackendLoginData
-  message: string
+  status?: string
+  token?: string
+  message?: string
+  role: string
+  success?: boolean    // <- la agrego para que puedas usar data.success
+  user?: {
+    id_persona: number
+    nombres: string
+    apellidos: string
+    correo: string
+    privilegio?: string[]
+  }
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
-export default function LoginForm() {
+export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [errors, setErrors] = useState<{ email?: string; password?: string; server?: string }>({})
+  const [errors, setErrors] = useState<{
+    email?: string
+    password?: string
+    server?: string
+  }>({})
   const [loading, setLoading] = useState(false)
+  const fieldsAreFilled = email && password
 
   const validate = () => {
     const newErrors: typeof errors = {}
 
     if (!email) newErrors.email = 'Correo es requerido'
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Formato de correo inválido'
+    else if (!/\S+@\S+\.\S+/.test(email))
+      newErrors.email = 'Formato de correo inválido'
 
     if (!password) newErrors.password = 'Password es requerido'
-    else if (password.length < 6) newErrors.password = 'Password debe tener al menos 6 caracteres'
+    else if (password.length < 6)
+      newErrors.password = 'Password debe tener al menos 6 caracteres'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -46,39 +55,58 @@ export default function LoginForm() {
     if (!validate()) return
 
     setLoading(true)
-
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      // 🔹 ÚNICO fetch que se usa
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login: email, password }),
+        // el backend espera "correo"
+        body: JSON.stringify({ correo: email, password }),
       })
 
-      const raw = await res.text()
-      console.log('Respuesta backend:', raw)
+      const data: LoginResponse = await res.json()
 
-      let data: LoginResponse
-
-      try {
-        data = JSON.parse(raw)
-      } catch {
-        throw new Error('Backend no retornó JSON válido')
+      // misma lógica: si no está ok o success es falso -> error
+      if (!res.ok || !data || data.success === false) {
+        throw new Error(data?.message || 'Error de autenticación')
       }
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Credenciales incorrectas')
+      // Guardar token y datos de usuario en localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+      }
+      localStorage.setItem('userRole', data.role)
+      localStorage.setItem('userEmail', email)
+      
+      // Guardar datos del usuario si están disponibles (desde backend)
+      if (data.user) {
+        localStorage.setItem('userId', data.user.id_persona.toString())
+        localStorage.setItem('userName', data.user.nombres)
+        localStorage.setItem('userLastName', data.user.apellidos)
+      } else {
+        // Fallback si no vienen en data.user
+        localStorage.setItem('userName', email)
       }
 
-      // Guardar la info igual que tu versión anterior
-      localStorage.setItem('token', data.data.token)
-      localStorage.setItem('userId', String(data.data.persona.id_persona))
-      localStorage.setItem('userName', data.data.persona.nombres)
-      localStorage.setItem('userEmail', data.data.persona.correo)
+      // callback opcional que ya tenías en props
+      onSuccess?.(data)
 
-      // Tu misma redirección
-      window.location.href = '/profesor-editor'
-    } catch (err: any) {
-      setErrors({ server: err.message })
+      // redirecciones según rol
+      if (data.role === 'administrador') {
+        window.location.href = '/admin'
+      } else if (data.role === 'editor') {
+        window.location.href = '/home'
+      } else {
+        window.location.href = '/home'
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Error de autenticación'
+
+      setErrors((prev) => ({
+        ...prev,
+        server: message,
+      }))
     } finally {
       setLoading(false)
     }
@@ -87,14 +115,22 @@ export default function LoginForm() {
   return (
     <div className="login-layout">
       <div className="login-left">
-        <div className="login-brand">Plataforma Educativa Programación Python</div>
+        <div className="login-brand">
+          Plataforma Educativa Programacion Python
+        </div>
 
-        <form className="login-form" onSubmit={handleSubmit} data-testid="form-login">
+        <form
+          className="login-form"
+          onSubmit={handleSubmit}
+          data-testid="form-login"
+        >
           <h2 className="login-title">Inicie sesión</h2>
 
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email</label>
             <input
+              id="email"
+              aria-label="Email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -103,22 +139,38 @@ export default function LoginForm() {
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
+              aria-label="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            {errors.password && <small className="error">{errors.password}</small>}
+            {errors.password && (
+              <small className="error" role="alert">
+                {errors.password}
+              </small>
+            )}
           </div>
 
-          {errors.server && <div className="server-error">{errors.server}</div>}
+          {errors.server && (
+            <div className="server-error" role="alert">
+              {errors.server}
+            </div>
+          )}
 
-          <button type="submit" disabled={loading} className="btn-login">
+          <button
+            type="submit"
+            disabled={loading || !fieldsAreFilled}
+            className="btn-login"
+          >
             {loading ? 'Cargando...' : 'Login'}
           </button>
 
-          <a href="/register" className="register-link">Register</a>
+          <a href="/register" className="register-link">
+            Register
+          </a>
         </form>
       </div>
 

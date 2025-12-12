@@ -20,27 +20,17 @@ model persona {
   password   String   @db.VarChar(100)
 
   // Relaciones
-  roles      rol_usuario[]
+  roles      privilegio_usuario[] @relation("PersonaRoles")
   cursos     curso_profesor[]  // Cursos asignados al profesor
-}
-
-model rol_usuario {
-  id_rol     Int      @id @default(autoincrement())
-  id_persona Int
-  persona    persona  @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade)
-
-  // Relación con privilegio_usuario
-  privilegio privilegio_usuario?
-
-  @@map("rol_usuario")
+  topicos    topico[]  // Tópicos creados por el profesor
 }
 
 model privilegio_usuario {
-  id_rol           Int      @id
+  id_rol           Int      @id @default(autoincrement())
   nombre_privilegio String  @db.VarChar(100)
-
-  // Relación inversa
-  rol              rol_usuario @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade)
+  
+  // Relación con personas
+  personas   persona[]  @relation("PersonaRoles")
 
   @@map("privilegio_usuario")
 }
@@ -54,7 +44,6 @@ model curso {
   
   // Relaciones
   profesores  curso_profesor[]
-  topicos     topico[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -81,40 +70,40 @@ model curso_profesor {
 }
 
 model topico {
-  id          Int      @id @default(autoincrement())
-  titulo      String   @db.VarChar(255)
-  descripcion String?  @db.Text
+  id_topico      Int      @id @default(autoincrement())
+  titulo         String   @db.VarChar(255)
+  descripcion    String?  @db.Text
   
-  // Relación con Curso
-  id_curso    Int
-  curso       curso    @relation(fields: [id_curso], references: [id], onDelete: Cascade)
+  // Relación con Profesor
+  id_persona     Int
+  persona        persona  @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade)
   
   // Relación con Recursos
-  recursos    recurso[]
+  recursos       recurso[]
   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   
-  @@index([id_curso])
+  @@index([id_persona])
 }
 
 model recurso {
-  id               Int      @id @default(autoincrement())
-  titulo           String   @db.VarChar(255)
-  tipo             String   @db.VarChar(50)  // 'video', 'document', 'slides', 'audio'
-  descripcion      String?  @db.Text
-  url_archivo      String?  @db.VarChar(500)
-  nombre_archivo   String?  @db.VarChar(255)
-  tamano_archivo   Int?     // Tamaño en bytes
-  tipo_mime        String?  @db.VarChar(100)
-  tiene_transcripcion Boolean? // Solo para videos
+  id_recurso           Int      @id @default(autoincrement())
+  titulo               String   @db.VarChar(255)
+  tipo                 String   @db.VarChar(50)  // 'video', 'document', 'slides', 'audio'
+  descripcion          String?  @db.Text
+  url_archivo          String?  @db.VarChar(500)
+  nombreArchivo        String?  @db.VarChar(255)
+  tamanioArchivo       Int?     // Tamaño en bytes
+  tipo_mime            String?  @db.VarChar(100)
+  tieneTranscripcion   Boolean @default(false) // Solo para videos
   
   // Relación con Tópico
-  id_topico        Int
-  topico           topico   @relation(fields: [id_topico], references: [id], onDelete: Cascade)
+  id_topico            Int
+  topico               topico   @relation(fields: [id_topico], references: [id_topico], onDelete: Cascade)
   
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
   
   @@index([id_topico])
 }

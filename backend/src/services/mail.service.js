@@ -11,10 +11,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-transporter.verify((error, success) => {
-  if (error) console.log(error);
-  else console.log('Servidor listo para enviar correos con Gmail:', success);
-});
+// Solo verificar conexión cuando NO estamos en tests
+if (process.env.NODE_ENV !== 'test') {
+  transporter.verify((error, success) => {
+    if (error) console.log(error);
+    else console.log('Servidor listo para enviar correos con Gmail:', success);
+  });
+}
 
 /* const info = await transporter.sendMail({
   from: 'jhonnyrojasflo@gmail.com',
