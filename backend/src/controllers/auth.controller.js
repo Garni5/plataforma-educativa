@@ -50,11 +50,11 @@ module.exports = { logout };
 //login sin google
 async function login(req, res) {
   try {
-    const { login, password } = req.body; 
-    const result = await authService.loginPersona(login, password);
+    const { login, correo, password } = req.body; 
+    const result = await authService.loginPersona(login || correo, password);
     console.log(result);
     res.status(200).json({
-      status: 'success',
+      status: 'success',   
       token: result.token,
       message: "Usuario autenticado correctamente",
       role: result.persona.privilegio,
@@ -63,6 +63,7 @@ async function login(req, res) {
   const statusCode = Number(err.status) || 401;
   res.status(statusCode).json({
     status: 'error',
+    success: false,
     message: err.message || "Error en el login"
   });
 }

@@ -41,7 +41,7 @@ app.use(passport.session());
 
 // Rutas
 app.use("/auth", authRoutes);
-app.use("/api", protectedRoutes);
+app.use("/api/protected", protectedRoutes);
 
 app.get("/auth/check", (req, res) => {
   if (req.isAuthenticated()) {

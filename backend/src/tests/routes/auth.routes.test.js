@@ -78,10 +78,13 @@ describe("POST /auth/login", () => {
       .send({ login: "test@mail.com", password: "wrong" });
 
     expect(res.status).toBe(401);
-    expect(res.body).toEqual({
-      status: 'error',
-      message: "Contraseña incorrecta",
-    });
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        status: 'error',
+        success: false,
+        message: "Contraseña incorrecta",
+      })
+    );
   });
 });
 
