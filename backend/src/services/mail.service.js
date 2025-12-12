@@ -1,10 +1,14 @@
-const nodemailer = require('nodemailer');
+/* const nodemailer = require('nodemailer');
+require("dotenv").config();
+console.log("SMTP_PASS:", process.env.SMTP_PASS);
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.sendgrid.net',
+  port: 587,
+  secure: false,
   auth: {
-    user: 'jhonnyrojasflo@gmail.com',     
-    pass: 'audvtcsvctmomzad', 
+    user: 'apikey',
+    pass: process.env.SMTP_PASS,
   },
 });
 
@@ -41,4 +45,4 @@ async function sendMail(persona, roles) {
 }
 module.exports = {  
   sendMail,
-};
+}; */

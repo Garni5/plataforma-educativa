@@ -1,5 +1,5 @@
 
-const transporter= require("../services/mail.service");
+/* const transporter= require("../services/mail.service");
 
 async function sendMail(req, res) {
 
@@ -36,4 +36,4 @@ async function sendMail(req, res) {
 
 
 
-module.exports = { sendMail };
+module.exports = { sendMail }; */

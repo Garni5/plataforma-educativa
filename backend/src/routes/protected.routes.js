@@ -1,7 +1,6 @@
 const express = require("express");
 const { authenticateJWT } = require("../middleware/auth.middleware");
 const { authorizeRoles } = require("../middleware/role.middleware");
-const mailController = require("../controllers/mail.controller"); 
 const roleController = require('../controllers/role.controller');
 const personaController = require('../controllers/persona.controller');
 
@@ -24,7 +23,7 @@ router.get(
     res.json({ message: "Bienvenido Editor!" });
   }
 );
-router.post("/send-mail", mailController.sendMail);
+
 router.post('/user/:id/roles/bulk', roleController.assignRolesBulk);
 router.get('/user/:id/rols',roleController.getRols);
 router.post('/rols',roleController.store);

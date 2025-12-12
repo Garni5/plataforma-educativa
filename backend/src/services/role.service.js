@@ -1,5 +1,4 @@
 const prisma = require('../prismaClient'); // tu instancia de prisma
-const mailController = require('./mail.service')
 
 
 async function getRoles(){
@@ -78,8 +77,7 @@ async function asignarRolesService(personaId, roles) {
     }
     const rolesNombres = result.roles.map(r => r.nombre_privilegio);
     console.log(rolesNombres);
-    const resSend = await mailController.sendMail(result,rolesNombres);
-    console.log(resSend);
+
     return {
         status_code:201,
         content:{
