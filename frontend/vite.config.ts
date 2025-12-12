@@ -12,11 +12,11 @@ export default defineConfig({
     globals: true,                 // permite usar describe/it/expect sin importar
   },
   server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000', // backend Express
-        changeOrigin: true,
-      },
-    },
-  },
+    host: true,  // escucha en todas las interfaces
+    port: 5173,
+    watch: {
+      usePolling: true, // ⚠ fuerza a Vite a detectar cambios
+      interval: 100     // revisar cada 100ms
+    }
+  }
 })

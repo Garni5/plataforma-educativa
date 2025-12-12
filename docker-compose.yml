@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16
+    container_name: postgres-dev
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mundolibre
+      POSTGRES_DB: plataformaeducativa
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: backend-node
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app        # monta tu código local dentro del contenedor
+      - /app/node_modules 
+    command: npx nodemon --legacy-watch index.js
+
+  frontend:
+    build: ./Frontend
+    container_name: frontend-vite
+    ports:
+      - "5173:5173"
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    volumes:
+      - ./Frontend:/app       # monta tu código local
+      - /app/node_modules
+    command: npm run dev -- --host
+volumes:
+  db-data:

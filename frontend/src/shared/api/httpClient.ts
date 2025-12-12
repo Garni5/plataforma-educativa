@@ -10,6 +10,7 @@ export const http = axios.create({
 
 // 🔹 Interceptor para incluir el token automáticamente
 http.interceptors.request.use((config) => {
+  console.log("holam mundo");
   const token = localStorage.getItem("token"); // o sessionStorage
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -20,6 +21,7 @@ http.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      console.log("holam mundo");
       // Token inválido o expirado → limpiar sesión
       localStorage.removeItem("token");
       window.location.href = "/login";

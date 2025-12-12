@@ -1,18 +1,23 @@
+
+
+require("dotenv").config();
+require("./services/authPassport.service"); 
 const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
 const morgan = require("morgan");
 const passport = require("passport");
-require("./services/authPassport.service"); 
+
 const protectedRoutes = require("./routes/protected.routes");
 
 const authRoutes = require("./routes/auth.routes");
 
 const app = express();
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: FRONTEND_URL,
     credentials: true,
   })
 );

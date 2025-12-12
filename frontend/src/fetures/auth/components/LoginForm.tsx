@@ -11,11 +11,12 @@ interface LoginResponse {
   status?: string
   token?: string
   message?: string
-  role: string
+  role: string[]
   success?: boolean    // <- la agrego para que puedas usar data.success
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+const API_URL = import.meta.env.VITE_API_BASE_URL 
+console.log(API_URL);
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState('')
@@ -50,14 +51,18 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
     setLoading(true)
     try {
+      const payload = {
+          login:email,
+          password:password
+      };
       // 🔹 ÚNICO fetch que se usa
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // el backend espera "correo"
-        body: JSON.stringify({ correo: email, password }),
+        body: JSON.stringify(payload),
       })
-
+      console.log("la respuesta",res);
       const data: LoginResponse = await res.json()
 
       // misma lógica: si no está ok o success es falso -> error
@@ -67,11 +72,20 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
       // callback opcional que ya tenías en props
       onSuccess?.(data)
-
+      if(!data.role){
+         const message = "Rol no asignado";
+          setErrors((prev) => ({
+        ...prev,
+        server: message,
+      }))
+      return;
+      }
+     const esAdmin = data.role.some((rol: string) => rol === 'administrador');
+const editor = data.role.some((rol: string) => rol === 'docente');
       // redirecciones según rol
-      if (data.role === 'administrador') {
+      if (esAdmin) {
         window.location.href = '/admin'
-      } else if (data.role === 'editor') {
+      } else if (editor) {
         window.location.href = '/profesor-editor'
       } else {
         window.location.href = '/'
@@ -111,11 +125,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="text-black"
             />
             {errors.email && <small className="error">{errors.email}</small>}
           </div>
 
-          <div className="form-group">
+          <div className="form-group ">
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -123,6 +138,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="text-black"
             />
             {errors.password && (
               <small className="error" role="alert">

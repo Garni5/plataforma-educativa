@@ -2,7 +2,8 @@ const express = require("express");
 const { authenticateJWT } = require("../middleware/auth.middleware");
 const { authorizeRoles } = require("../middleware/role.middleware");
 const mailController = require("../controllers/mail.controller"); 
-const { asignarRolesController } = require('../controllers/admin.constroller');
+const roleController = require('../controllers/role.controller');
+const personaController = require('../controllers/persona.controller');
 
 const router = express.Router();
 
@@ -24,6 +25,10 @@ router.get(
   }
 );
 router.post("/send-mail", mailController.sendMail);
-router.post('/asignar', asignarRolesController);
+router.post('/user/:id/roles/bulk', roleController.assignRolesBulk);
+router.get('/user/:id/rols',roleController.getRols);
+router.post('/rols',roleController.store);
+router.get('/rols',roleController.index);
+router.get('/personas',personaController.index);
 
 module.exports = router;

@@ -1,17 +1,22 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE "persona" (
+    "id_persona" SERIAL NOT NULL,
+    "nombres" VARCHAR(100) NOT NULL,
+    "apellidos" VARCHAR(100) NOT NULL,
+    "correo" VARCHAR(100) NOT NULL,
+    "telefono" VARCHAR(100),
+    "password" VARCHAR(100),
 
-  - You are about to drop the `rol_usuario` table. If the table is not empty, all the data it contains will be lost.
+    CONSTRAINT "persona_pkey" PRIMARY KEY ("id_persona")
+);
 
-*/
--- DropForeignKey
-ALTER TABLE "public"."privilegio_usuario" DROP CONSTRAINT "privilegio_usuario_id_rol_fkey";
+-- CreateTable
+CREATE TABLE "privilegio_usuario" (
+    "id_rol" SERIAL NOT NULL,
+    "nombre_privilegio" VARCHAR(100) NOT NULL,
 
--- DropForeignKey
-ALTER TABLE "public"."rol_usuario" DROP CONSTRAINT "rol_usuario_id_persona_fkey";
-
--- DropTable
-DROP TABLE "public"."rol_usuario";
+    CONSTRAINT "privilegio_usuario_pkey" PRIMARY KEY ("id_rol")
+);
 
 -- CreateTable
 CREATE TABLE "_PersonaRoles" (
@@ -20,6 +25,9 @@ CREATE TABLE "_PersonaRoles" (
 
     CONSTRAINT "_PersonaRoles_AB_pkey" PRIMARY KEY ("A","B")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "persona_correo_key" ON "persona"("correo");
 
 -- CreateIndex
 CREATE INDEX "_PersonaRoles_B_index" ON "_PersonaRoles"("B");

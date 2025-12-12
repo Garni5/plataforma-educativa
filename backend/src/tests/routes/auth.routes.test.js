@@ -66,7 +66,7 @@ describe("POST /auth/login", () => {
     status: 'success',
     token: mockResult.token,
     message: "Usuario autenticado correctamente",
-    role: mockResult.persona.privilegio[0]  // coincide con la función
+    role: mockResult.persona.privilegio  // coincide con la función
   });
   });
 
