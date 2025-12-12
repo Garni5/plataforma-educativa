@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './LoginForm.css'
+import IniciarConGoogle from './inicioSesionGoogle'
 
 interface LoginFormProps {
   onSuccess?: (data: LoginResponse) => void
@@ -143,6 +144,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           >
             {loading ? 'Cargando...' : 'Login'}
           </button>
+          {/* Componente de inicio de sesión con Google */}
+          <div className="divider">
+            <span>o</span>
+          </div>
+
+          <IniciarConGoogle />
 
           <a href="/register" className="register-link">
             Register

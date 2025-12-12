@@ -12,6 +12,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LoginForm from './LoginForm'
 
+// Mocking del componente IniciarConGoogle
+vi.mock('./inicioSesionGoogle', () => ({
+  default: () => <div>Mock de IniciarConGoogle</div>,
+}))
+
 const user = userEvent.setup()
 
 // helper: acepta string o RegExp

@@ -1,0 +1,25 @@
+.google-login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.google-login-btn {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.google-login-btn:disabled {
+  background-color: #ccc;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
