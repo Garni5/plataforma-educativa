@@ -11,4 +11,12 @@ export default defineConfig({
     setupFiles: './vitest.setup.ts', // archivo de configuración inicial
     globals: true,                 // permite usar describe/it/expect sin importar
   },
+  server: {
+    host: true,  // escucha en todas las interfaces
+    port: 5173,
+    watch: {
+      usePolling: true, // ⚠ fuerza a Vite a detectar cambios
+      interval: 100     // revisar cada 100ms
+    }
+  }
 })

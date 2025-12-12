@@ -57,7 +57,7 @@ async function login(req, res) {
       status: 'success',
       token: result.token,
       message: "Usuario autenticado correctamente",
-      role: result.persona.privilegio[0],
+      role: result.persona.privilegio,
     });
   } catch (err) {
   const statusCode = Number(err.status) || 401;

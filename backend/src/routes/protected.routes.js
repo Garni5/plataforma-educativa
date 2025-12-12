@@ -3,6 +3,7 @@ const { authenticateJWT } = require("../middleware/auth.middleware");
 const { authorizeRoles } = require("../middleware/role.middleware");
 const mailController = require("../controllers/mail.controller"); 
 const roleController = require('../controllers/role.controller');
+const personaController = require('../controllers/persona.controller');
 
 const router = express.Router();
 
@@ -28,5 +29,6 @@ router.post('/user/:id/roles/bulk', roleController.assignRolesBulk);
 router.get('/user/:id/rols',roleController.getRols);
 router.post('/rols',roleController.store);
 router.get('/rols',roleController.index);
+router.get('/personas',personaController.index);
 
 module.exports = router;

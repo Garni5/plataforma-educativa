@@ -10,7 +10,7 @@ interface LoginResponse {
   status?: string
   token?: string
   message?: string
-  role: string
+  role: string[]
   success?: boolean    // <- la agrego para que puedas usar data.success
 }
 
@@ -79,11 +79,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       }))
       return;
       }
-
+     const esAdmin = data.role.some((rol: string) => rol === 'administrador');
+const editor = data.role.some((rol: string) => rol === 'docente');
       // redirecciones según rol
-      if (data.role === 'administrador') {
+      if (esAdmin) {
         window.location.href = '/admin'
-      } else if (data.role === 'editor') {
+      } else if (editor) {
         window.location.href = '/profesor-editor'
       } else {
         window.location.href = '/'
@@ -123,11 +124,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="text-black"
             />
             {errors.email && <small className="error">{errors.email}</small>}
           </div>
 
-          <div className="form-group">
+          <div className="form-group ">
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -135,6 +137,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="text-black"
             />
             {errors.password && (
               <small className="error" role="alert">

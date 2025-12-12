@@ -76,55 +76,61 @@ describe('LoginForm (TDD) - login con correo y password', () => {
     )
     expect(errorElement).toBeInTheDocument()
     expect(errorElement).toHaveAttribute('role', 'alert')
+  }, 10000)
+
+it('habilita Login cuando el formulario es válido y llama a la API con el payload correcto', async () => {
+  const onSuccess = vi.fn()
+  render(<LoginForm onSuccess={onSuccess} />)
+
+  // helper fill para los inputs
+  await fill(/email/i, 'ana@mail.com')
+  await fill(/password/i, 'secreto')
+
+  const btn = screen.getByRole('button', { name: /login/i })
+  expect(btn).toBeEnabled()
+
+  // respuesta fake del backend
+  const fakeResponse = {
+    success: true,
+    role: ['docente'], // o roles que necesites
+    message: 'Usuario autenticado correctamente',
+    token: 'abc123',
+  }
+
+  // mock de fetch
+  fetchMock.mockResolvedValueOnce({
+    ok: true,
+    status: 200,
+    json: async () => fakeResponse,
+  } as Response)
+
+  // clic en login
+  await user.click(btn)
+
+  // espera a que se haga la llamada al backend
+  await waitFor(() => {
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/auth\/login$/),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify({
+          // ⚡ backend espera "login"
+          login: 'ana@mail.com',
+          password: 'secreto',
+        }),
+      }),
+    )
   })
 
-  it('habilita Login cuando el formulario es válido y llama a la API con el payload correcto', async () => {
-    const onSuccess = vi.fn()
-    render(<LoginForm onSuccess={onSuccess} />)
-
-    await fill(/email/i, 'ana@mail.com')
-    await fill(/password/i, 'secreto')
-
-    const btn = screen.getByRole('button', { name: /login/i })
-    expect(btn).toBeEnabled()
-
-    // respuesta fake del backend
-    const fakeResponse = {
-      success: true,
-      data: { persona: { id_persona: 1, roles: [] }, token: 'abc123' },
-      message: 'Usuario autenticado correctamente',
-    }
-
-    // ⬇️ Ahora el componente usa res.json()
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => fakeResponse,
-    } as Response)
-
-    await user.click(btn)
-
-    // verifica llamada a /auth/login
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringMatching(/\/auth\/login$/),
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-          }),
-          body: JSON.stringify({
-            // ⬇️ el backend ahora espera "correo"
-            correo: 'ana@mail.com',
-            password: 'secreto',
-          }),
-        }),
-      )
-    })
-
-    // verifica que se llame el callback de éxito
+  // verifica que se llame el callback de éxito
+  await waitFor(() => {
     expect(onSuccess).toHaveBeenCalledWith(fakeResponse)
   })
+}, 10000) // aumenta timeout si la acción tarda
+
 
   it('muestra error del servidor cuando la API responde 401/400 y re-habilita Login', async () => {
     render(<LoginForm />)

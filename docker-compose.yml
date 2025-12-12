@@ -24,10 +24,10 @@ services:
     volumes:
       - ./backend:/app        # monta tu código local dentro del contenedor
       - /app/node_modules 
-    command: sh -c "npx prisma migrate dev --name init && npm run dev"
+    command: npx nodemon --legacy-watch index.js
 
   frontend:
-    build: ./frontend
+    build: ./Frontend
     container_name: frontend-vite
     ports:
       - "5173:5173"
@@ -36,7 +36,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./frontend:/app       # monta tu código local
+      - ./Frontend:/app       # monta tu código local
       - /app/node_modules
     command: npm run dev -- --host
 volumes:

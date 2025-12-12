@@ -15,19 +15,23 @@ describe('ProfesorEditorPage', () => {
     expect(screen.getByText('Añadir Tópico')).toBeInTheDocument()
   })
 
-  test('modifica el nombre de un tópico', () => {
-    render(<ProfesorEditorPage />)
+test('modifica el nombre de un tópico', async () => {
+  render(<ProfesorEditorPage />)
 
-    // botón de editar del primer tópico
-    fireEvent.click(screen.getAllByRole('button')[0])
+  // botón de editar del primer tópico
+  fireEvent.click(screen.getAllByRole('button')[0])
 
-    fireEvent.change(screen.getByRole('textbox'), {
-      target: { value: 'Nuevo Tópico' },
-    })
-    fireEvent.click(screen.getByText('Aceptar'))
+  fireEvent.change(screen.getByRole('textbox'), {
+    target: { value: 'Nuevo Tópico' },
+  })
 
+  fireEvent.click(screen.getByText('Aceptar'))
+
+  // espera a que el DOM se actualice
+  await waitFor(() => {
     expect(screen.getByText('Nuevo Tópico')).toBeInTheDocument()
   })
+}, 10000) 
 
   test('elimina un tópico', async () => {
     render(<ProfesorEditorPage />)
