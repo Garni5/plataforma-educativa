@@ -80,7 +80,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       if (data.token) {
         localStorage.setItem('token', data.token)
       }
-      localStorage.setItem('userRole', data.role)
+    localStorage.setItem('userRole', JSON.stringify(data.role));
       localStorage.setItem('userEmail', email)
       
       // Guardar datos del usuario si están disponibles (desde backend)
