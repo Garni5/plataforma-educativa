@@ -12,6 +12,13 @@ interface LoginResponse {
   message?: string
   role: string
   success?: boolean    // <- la agrego para que puedas usar data.success
+  user?: {
+    id_persona: number
+    nombres: string
+    apellidos: string
+    correo: string
+    privilegio?: string[]
+  }
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -64,6 +71,23 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         throw new Error(data?.message || 'Error de autenticación')
       }
 
+      // Guardar token y datos de usuario en localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+      }
+      localStorage.setItem('userRole', data.role)
+      localStorage.setItem('userEmail', email)
+      
+      // Guardar datos del usuario si están disponibles (desde backend)
+      if (data.user) {
+        localStorage.setItem('userId', data.user.id_persona.toString())
+        localStorage.setItem('userName', data.user.nombres)
+        localStorage.setItem('userLastName', data.user.apellidos)
+      } else {
+        // Fallback si no vienen en data.user
+        localStorage.setItem('userName', email)
+      }
+
       // callback opcional que ya tenías en props
       onSuccess?.(data)
 
@@ -71,9 +95,9 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       if (data.role === 'administrador') {
         window.location.href = '/admin'
       } else if (data.role === 'editor') {
-        window.location.href = '/profesor-editor'
+        window.location.href = '/home'
       } else {
-        window.location.href = '/'
+        window.location.href = '/home'
       }
     } catch (err) {
       const message =

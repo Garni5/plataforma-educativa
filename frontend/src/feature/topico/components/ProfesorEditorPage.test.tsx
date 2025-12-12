@@ -1,53 +1,155 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { vi, beforeEach, afterEach, describe, test, expect } from 'vitest'
 import ProfesorEditorPage from './ProfesorEditorPage'
 
+// Mock del fetch
+const mockFetch = vi.fn()
+global.fetch = mockFetch as unknown as typeof fetch
+
 describe('ProfesorEditorPage', () => {
-  test('renderiza correctamente', () => {
-    render(<ProfesorEditorPage />)
-    expect(screen.getByText('Curso Activo : Python')).toBeInTheDocument()
+  beforeEach(() => {
+    // Limpiar localStorage antes de cada test
+    localStorage.clear()
+    vi.clearAllMocks()
+    
+    // Mock de localStorage
+    localStorage.setItem('token', 'test-token')
+    localStorage.setItem('userId', '1')
+    localStorage.setItem('userName', 'Test User')
+    localStorage.setItem('userEmail', 'test@example.com')
   })
 
-  test('abre el modal de agregar tópico', () => {
-    render(<ProfesorEditorPage />)
-
-    fireEvent.click(screen.getByText('+'))
-
-    expect(screen.getByText('Añadir Tópico')).toBeInTheDocument()
+  afterEach(() => {
+    localStorage.clear()
   })
 
-  test('modifica el nombre de un tópico', () => {
+  test('muestra formulario de login cuando no hay token', () => {
+    localStorage.clear()
     render(<ProfesorEditorPage />)
+    
+    expect(screen.getByText('🎓 Editor de Contenido')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('correo@ejemplo.com')).toBeInTheDocument()
+  })
 
-    // botón de editar del primer tópico
-    fireEvent.click(screen.getAllByRole('button')[0])
+  test('carga y muestra tópicos cuando está autenticado', async () => {
+    const mockTopicos = {
+      success: true,
+      data: [
+        {
+          id_topico: 1,
+          titulo: 'Variables',
+          descripcion: 'Tema sobre variables',
+          recursos: []
+        }
+      ]
+    }
 
-    fireEvent.change(screen.getByRole('textbox'), {
-      target: { value: 'Nuevo Tópico' },
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockTopicos
     })
-    fireEvent.click(screen.getByText('Aceptar'))
 
-    expect(screen.getByText('Nuevo Tópico')).toBeInTheDocument()
-  })
-
-  test('elimina un tópico', async () => {
     render(<ProfesorEditorPage />)
 
-    // 1️ Encontrar la tarjeta que contiene el tópico "Sintaxis básica"
-    const topicElement = screen.getByText('Sintaxis básica')
-    const topicCard = topicElement.closest('.topic-card') as HTMLElement
-
-    // 2️ Dentro de esa tarjeta, encontrar el ícono de eliminar por su alt
-    const eliminarIcon = within(topicCard).getByAltText('Eliminar')
-
-    // 3️ Hacer clic en el botón que contiene ese ícono
-    fireEvent.click(eliminarIcon.closest('button') as HTMLButtonElement)
-
-    // 4️ Confirmar en el modal (clic en "Aceptar")
-    fireEvent.click(screen.getByText('Aceptar'))
-
-    // 5️ Esperar a que desaparezca del DOM
+    // Esperar a que aparezca el header que confirma que está autenticado
     await waitFor(() => {
-      expect(screen.queryByText('Sintaxis básica')).not.toBeInTheDocument()
+      expect(screen.getByText(/Editor de Contenido del Curso/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
+  })
+
+  test('permite agregar un nuevo tópico', async () => {
+    const mockTopicos = {
+      success: true,
+      data: []
+    }
+
+    const mockNuevoTopico = {
+      success: true,
+      data: {
+        id_topico: 1,
+        titulo: 'Python Avanzado',
+        descripcion: '',
+        recursos: []
+      }
+    }
+
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockTopicos
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockNuevoTopico
+      })
+
+    render(<ProfesorEditorPage />)
+
+    const input = await waitFor(() => 
+      screen.getByPlaceholderText('Nombre del nuevo tópico...')
+    )
+
+    fireEvent.change(input, { target: { value: 'Python Avanzado' } })
+    fireEvent.click(screen.getByText(/Agregar Tópico/))
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/topicos'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
+  })
+
+  test('maneja error de autenticación (401)', async () => {
+    mockFetch.mockResolvedValueOnce({
+      status: 401,
+      ok: false,
+      json: async () => ({})
+    })
+
+    render(<ProfesorEditorPage />)
+
+    await waitFor(() => {
+      expect(localStorage.getItem('token')).toBeNull()
+    })
+  })
+
+  test('muestra error cuando falla al cargar tópicos', async () => {
+    mockFetch.mockRejectedValueOnce(
+      new Error('Error de red')
+    )
+
+    render(<ProfesorEditorPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error al cargar tópicos/)).toBeInTheDocument()
+    })
+  })
+
+  test('permite hacer logout', async () => {
+    const mockTopicos = {
+      success: true,
+      data: []
+    }
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockTopicos
+    })
+
+    render(<ProfesorEditorPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Cerrar Sesión')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('Cerrar Sesión'))
+
+    expect(localStorage.getItem('token')).toBeNull()
+    expect(localStorage.getItem('userId')).toBeNull()
   })
 })

@@ -53,10 +53,13 @@ it("debería manejar error de login", async () => {
   await login(req, res);
 
   expect(res.status).toHaveBeenCalledWith(401); // coincide con el status numérico
-  expect(res.json).toHaveBeenCalledWith({
-    status: 'error',
-    message: "Contraseña incorrecta",
-  });
+  expect(res.json).toHaveBeenCalledWith(
+    expect.objectContaining({
+      status: 'error',
+      success: false,
+      message: "Contraseña incorrecta",
+    })
+  );
 });
 
 

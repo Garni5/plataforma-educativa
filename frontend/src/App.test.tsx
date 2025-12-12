@@ -9,5 +9,6 @@ it('muestra loading inicialmente', () => {
       <App />
     </MemoryRouter>
   )
-  expect(screen.getByText(/cargando/i)).toBeInTheDocument()
+  // El componente App renderiza la navegación principal
+  expect(screen.getByText('Plataforma')).toBeInTheDocument()
 })

@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,18 +10,100 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============ USUARIOS Y ROLES ============
+
 model persona {
-  id_persona Int                 @id @default(autoincrement())
-  nombres    String              @db.VarChar(100)
-  apellidos  String              @db.VarChar(100)
-  correo     String              @unique @db.VarChar(100)
-  telefono   String?             @db.VarChar(100)
-  password   String?             @db.VarChar(100)
+  id_persona Int      @id @default(autoincrement())
+  nombres    String   @db.VarChar(100)
+  apellidos  String   @db.VarChar(100)
+  correo     String   @db.VarChar(100) @unique
+  password   String   @db.VarChar(100)
+
+  // Relaciones
   roles      privilegio_usuario[] @relation("PersonaRoles")
+  cursos     curso_profesor[]  // Cursos asignados al profesor
+  topicos    topico[]  // Tópicos creados por el profesor
 }
 
 model privilegio_usuario {
-  id_rol            Int       @id @default(autoincrement())
-  nombre_privilegio String    @db.VarChar(100)
-  personas          persona[] @relation("PersonaRoles")
+  id_rol           Int      @id @default(autoincrement())
+  nombre_privilegio String  @db.VarChar(100)
+  
+  // Relación con personas
+  personas   persona[]  @relation("PersonaRoles")
+
+  @@map("privilegio_usuario")
+}
+
+// ============ CURSOS Y CONTENIDO ============
+
+model curso {
+  id          Int      @id @default(autoincrement())
+  titulo      String   @db.VarChar(255)
+  descripcion String?  @db.Text
+  
+  // Relaciones
+  profesores  curso_profesor[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Tabla intermedia: Profesor - Curso
+model curso_profesor {
+  id         Int      @id @default(autoincrement())
+  
+  // Profesor
+  id_persona Int
+  persona    persona  @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade)
+  
+  // Curso
+  id_curso   Int
+  curso      curso    @relation(fields: [id_curso], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@unique([id_persona, id_curso])
+  @@index([id_persona])
+  @@index([id_curso])
+}
+
+model topico {
+  id_topico      Int      @id @default(autoincrement())
+  titulo         String   @db.VarChar(255)
+  descripcion    String?  @db.Text
+  
+  // Relación con Profesor
+  id_persona     Int
+  persona        persona  @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade)
+  
+  // Relación con Recursos
+  recursos       recurso[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([id_persona])
+}
+
+model recurso {
+  id_recurso           Int      @id @default(autoincrement())
+  titulo               String   @db.VarChar(255)
+  tipo                 String   @db.VarChar(50)  // 'video', 'document', 'slides', 'audio'
+  descripcion          String?  @db.Text
+  url_archivo          String?  @db.VarChar(500)
+  nombreArchivo        String?  @db.VarChar(255)
+  tamanioArchivo       Int?     // Tamaño en bytes
+  tipo_mime            String?  @db.VarChar(100)
+  tieneTranscripcion   Boolean @default(false) // Solo para videos
+  
+  // Relación con Tópico
+  id_topico            Int
+  topico               topico   @relation(fields: [id_topico], references: [id_topico], onDelete: Cascade)
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@index([id_topico])
 }

@@ -24,6 +24,10 @@ export default function App() {
   const handleLogout = () => {
     // Limpia token o sesión si lo usas
     localStorage.removeItem('token')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userName')
+    localStorage.removeItem('userEmail')
+    localStorage.removeItem('userRole')
     navigate('/login', { replace: true })
   }
 
@@ -42,7 +46,7 @@ export default function App() {
             </>
           ) : isEditorRoute ? (
             <>
-              <span>Soy profesor editor</span>
+              <span>Area Profesor editor</span>
               <button className="logout-button" onClick={handleLogout}>
                 Cerrar sesión
               </button>
