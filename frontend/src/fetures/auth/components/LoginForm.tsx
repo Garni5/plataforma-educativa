@@ -1,9 +1,5 @@
 import { useState } from 'react'
-import '../LoginForm.css'
-
-interface LoginFormProps {
-  onSuccess?: (data: LoginResponse) => void
-}
+import './LoginForm.css'
 
 interface PersonaResponse {
   id_persona: number
@@ -23,7 +19,9 @@ interface LoginResponse {
   message: string
 }
 
-export default function LoginForm({ onSuccess }: LoginFormProps) {
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+
+export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<{ email?: string; password?: string; server?: string }>({})
@@ -45,12 +43,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrors({})
-
     if (!validate()) return
+
     setLoading(true)
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/login', {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login: email, password }),
@@ -60,29 +58,27 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       console.log('Respuesta backend:', raw)
 
       let data: LoginResponse
+
       try {
         data = JSON.parse(raw)
       } catch {
-        throw new Error('El backend no retorna JSON válido.')
+        throw new Error('Backend no retornó JSON válido')
       }
 
       if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Credenciales inválidas')
+        throw new Error(data.message || 'Credenciales incorrectas')
       }
 
-      // Guardar token
+      // Guardar la info igual que tu versión anterior
       localStorage.setItem('token', data.data.token)
       localStorage.setItem('userId', String(data.data.persona.id_persona))
       localStorage.setItem('userName', data.data.persona.nombres)
       localStorage.setItem('userEmail', data.data.persona.correo)
 
-      // callback opcional
-      onSuccess?.(data)
-
-      // Redirigir a Home o Dashboard general
-      window.location.href = '/'
+      // Tu misma redirección
+      window.location.href = '/profesor-editor'
     } catch (err: any) {
-      setErrors({ server: err.message || 'Error desconocido' })
+      setErrors({ server: err.message })
     } finally {
       setLoading(false)
     }
@@ -97,9 +93,8 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           <h2 className="login-title">Inicie sesión</h2>
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label>Email</label>
             <input
-              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -108,9 +103,8 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
-              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

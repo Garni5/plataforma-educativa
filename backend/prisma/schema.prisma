@@ -1,12 +1,8 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
- 
 }
 
 datasource db {
@@ -14,28 +10,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============ USUARIOS Y ROLES ============
+
 model persona {
   id_persona Int      @id @default(autoincrement())
   nombres    String   @db.VarChar(100)
   apellidos  String   @db.VarChar(100)
   correo     String   @db.VarChar(100) @unique
   password   String   @db.VarChar(100)
-  
 
   // Relaciones
-  roles rol_usuario[]
-  topicos topico[]
+  roles      rol_usuario[]
+  cursos     curso_profesor[]  // Cursos asignados al profesor
 }
 
 model rol_usuario {
   id_rol     Int      @id @default(autoincrement())
   id_persona Int
-  persona    persona  @relation(fields: [id_persona], references: [id_persona])
+  persona    persona  @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade)
 
   // Relación con privilegio_usuario
   privilegio privilegio_usuario?
 
-  @@map("rol_usuario") // Por si la tabla en PostgreSQL ya existe con ese nombre
+  @@map("rol_usuario")
 }
 
 model privilegio_usuario {
@@ -43,40 +40,81 @@ model privilegio_usuario {
   nombre_privilegio String  @db.VarChar(100)
 
   // Relación inversa
-  rol rol_usuario   @relation(fields: [id_rol], references: [id_rol])
+  rol              rol_usuario @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade)
 
   @@map("privilegio_usuario")
 }
 
-model topico {
-  id_topico    Int       @id @default(autoincrement())
-  titulo       String    @db.VarChar(200)
-  descripcion  String?   @db.Text
-  id_persona   Int
-  persona      persona   @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade)
-  
-  recursos     recurso[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+// ============ CURSOS Y CONTENIDO ============
 
-  @@map("topico")
+model curso {
+  id          Int      @id @default(autoincrement())
+  titulo      String   @db.VarChar(255)
+  descripcion String?  @db.Text
+  
+  // Relaciones
+  profesores  curso_profesor[]
+  topicos     topico[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Tabla intermedia: Profesor - Curso
+model curso_profesor {
+  id         Int      @id @default(autoincrement())
+  
+  // Profesor
+  id_persona Int
+  persona    persona  @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade)
+  
+  // Curso
+  id_curso   Int
+  curso      curso    @relation(fields: [id_curso], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@unique([id_persona, id_curso])
+  @@index([id_persona])
+  @@index([id_curso])
+}
+
+model topico {
+  id          Int      @id @default(autoincrement())
+  titulo      String   @db.VarChar(255)
+  descripcion String?  @db.Text
+  
+  // Relación con Curso
+  id_curso    Int
+  curso       curso    @relation(fields: [id_curso], references: [id], onDelete: Cascade)
+  
+  // Relación con Recursos
+  recursos    recurso[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([id_curso])
 }
 
 model recurso {
-  id_recurso    Int       @id @default(autoincrement())
-  titulo        String    @db.VarChar(200)
-  descripcion   String?   @db.Text
-  tipo          String    @db.VarChar(50) // 'video', 'document', 'slides', 'audio'
-  url_archivo   String?   @db.Text
-  nombreArchivo String?   @db.VarChar(255)
-  tamanioArchivo Int?     // En bytes
+  id               Int      @id @default(autoincrement())
+  titulo           String   @db.VarChar(255)
+  tipo             String   @db.VarChar(50)  // 'video', 'document', 'slides', 'audio'
+  descripcion      String?  @db.Text
+  url_archivo      String?  @db.VarChar(500)
+  nombre_archivo   String?  @db.VarChar(255)
+  tamano_archivo   Int?     // Tamaño en bytes
+  tipo_mime        String?  @db.VarChar(100)
+  tiene_transcripcion Boolean? // Solo para videos
   
-  id_topico     Int
-  topico        topico    @relation(fields: [id_topico], references: [id_topico], onDelete: Cascade)
+  // Relación con Tópico
+  id_topico        Int
+  topico           topico   @relation(fields: [id_topico], references: [id], onDelete: Cascade)
   
-  tieneTranscripcion Boolean @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@map("recurso")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@index([id_topico])
 }

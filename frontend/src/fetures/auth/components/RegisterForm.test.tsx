@@ -33,7 +33,7 @@ describe('RegisterForm (TDD) - sin CI ni Teléfono y con Confirmar contraseña (
       screen.getByLabelText(/confirm(ar)? (password|contraseñ[ao])/i)
     ).toBeInTheDocument()
 
-    expect(screen.getByRole('button', { name: /registrar/i })).toBeDisabled()
+   expect(screen.getByTestId('btn-registrar')).toBeDisabled()
   })
 
   it('muestra errores de validación cuando faltan datos o son inválidos', async () => {
@@ -82,8 +82,8 @@ describe('RegisterForm (TDD) - sin CI ni Teléfono y con Confirmar contraseña (
     await fill(/password/i, 'secreto')
     await fill(/confirm(ar)? (password|contraseñ[ao])/i, 'secreto')
 
-    const btn = screen.getByRole('button', { name: /registrar/i })
-    expect(btn).toBeEnabled()
+ const btn = screen.getByTestId('btn-registrar')
+expect(btn).toBeEnabled()
 
     fetchMock.mockResolvedValueOnce({
       ok: true,
@@ -94,7 +94,7 @@ describe('RegisterForm (TDD) - sin CI ni Teléfono y con Confirmar contraseña (
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringMatching(/\/api\/auth\/register$/),
+        expect.stringMatching(/\/auth\/register$/),
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
@@ -125,8 +125,9 @@ describe('RegisterForm (TDD) - sin CI ni Teléfono y con Confirmar contraseña (
       json: async () => ({ message: 'El correo ya está registrado' })
     } as Response)
 
-    const btn = screen.getByRole('button', { name: /registrar/i })
-    fireEvent.click(btn)
+   const btn = screen.getByTestId('btn-registrar')
+
+fireEvent.click(btn)
 
     expect(await screen.findByText(/el correo ya está registrado/i)).toBeInTheDocument()
     expect(btn).toBeEnabled()

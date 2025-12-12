@@ -2,9 +2,9 @@ name: CI (frontend & backend)
 
 on:
   push:
-    branches: ["main", "saul", "edilson"]
+    branches: ["main", "saul", "jhonny", "tarea1(11/11/25)"]
   pull_request:
-    branches: ["main", "saul", "edilson"]
+    branches: ["main", "saul", "jhonny", "tarea1(11/11/25)"]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -12,7 +12,9 @@ concurrency:
 
 env:
   CI: true
-  NODE_ENV: test
+
+  NODE_ENV: test # Asegura entorno correcto para Vitest
+
 
 jobs:
   frontend:
@@ -20,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [ 20.x, 22.x]
 
     defaults:
       run:
@@ -49,15 +51,14 @@ jobs:
         run: |
           echo "Checking for test files..."
           if find ./src -type f \( -name "*.test.*" -o -name "*.spec.*" \) | grep -q .; then
-            echo "Running Vitest..."
-            npm test -- --run
+            echo "Running Vitest (npm test)..."
+            npm test -- --run --reporter=verbose
           else
             echo "No test files found; skipping Vitest."
           fi
 
       - name: Build
         run: npm run build --if-present
-
 
   backend:
     name: Backend (lint, test, build)

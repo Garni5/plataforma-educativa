@@ -1,4 +1,4 @@
-import {
+import { 
   Routes,
   Route,
   Navigate,
@@ -7,12 +7,14 @@ import {
   useNavigate,
 } from 'react-router-dom'
 
-import HomePage from './pages/Home'
-import RegisterForm from './pages/RegisterForm'
-import LoginForm from './pages/LoginForm'
+import Home from './pages/Home'
+
+// Nuevas rutas reales de tu proyecto actual
+import RegisterForm from './fetures/auth/components/RegisterForm'
+import LoginForm from './fetures/auth/components/LoginForm'
 import AdminPage from './pages/AdminPage'
-import ProfesorEditorPage from './pages/ProfesorEditorPage'
-import './RegisterForms.css'
+import ProfesorEditorPage from './feature/topico/components/ProfesorEditorPage'
+
 import type { JSX } from 'react'
 
 // =======================================
@@ -25,7 +27,6 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const token = localStorage.getItem('token')
 
-  // Si NO hay token → enviar al login
   if (!token) return <Navigate to="/login" replace />
 
   return children
@@ -35,10 +36,8 @@ export default function App() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // Detectar login
   const isLoggedIn = !!localStorage.getItem('token')
 
-  // Detectar rutas específicas
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isEditorRoute = location.pathname.startsWith('/profesor-editor')
 
@@ -54,9 +53,7 @@ export default function App() {
 
   return (
     <>
-      {/* =============================== */}
-      {/* BARRA SUPERIOR                 */}
-      {/* =============================== */}
+      {/* NAVBAR */}
       <nav className="topbar">
         <span>Plataforma</span>
 
@@ -70,24 +67,15 @@ export default function App() {
             </>
           ) : (
             <>
-              <NavLink
-                to="/"
-                className={({ isActive }) => (isActive ? 'active' : '')}
-              >
+              <NavLink to="/home" className={({ isActive }) => (isActive ? 'active' : '')}>
                 Home
               </NavLink>
 
-              <NavLink
-                to="/register"
-                className={({ isActive }) => (isActive ? 'active' : '')}
-              >
+              <NavLink to="/register" className={({ isActive }) => (isActive ? 'active' : '')}>
                 Registro
               </NavLink>
 
-              <NavLink
-                to="/login"
-                className={({ isActive }) => (isActive ? 'active' : '')}
-              >
+              <NavLink to="/login" className={({ isActive }) => (isActive ? 'active' : '')}>
                 Login
               </NavLink>
             </>
@@ -95,32 +83,24 @@ export default function App() {
         </div>
       </nav>
 
-      {/* =============================== */}
-      {/* CONTENIDO CENTRAL               */}
-      {/* =============================== */}
+      {/* CONTENIDO CENTRAL */}
       <main>
         <Routes>
-          {/* Raíz muestra el Home */}
-          <Route path="/" element={<HomePage />} />
+          {/* Redirección raíz a login como tu app anterior */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* Públicas */}
-          <Route
-            path="/register"
-            element={<RegisterForm onSuccess={(d) => console.log('Registro OK', d)} />}
-          />
+          <Route path="/home" element={<Home />} />
 
-          <Route
-            path="/login"
-            element={<LoginForm onSuccess={(d) => console.log('Login OK', d)} />}
-          />
+          {/* Rutas públicas */}
+          <Route path="/register" element={<RegisterForm />} />
+          <Route path="/login" element={<LoginForm />} />
 
           {/* =============================== */}
           {/*  RUTAS PROTEGIDAS SIN ROLES    */}
           {/* =============================== */}
 
-          {/* Profesor Editor */}
           <Route
-            path="/ProfesorEditorPage"
+            path="/profesor-editor"
             element={
               <ProtectedRoute>
                 <ProfesorEditorPage />
@@ -128,7 +108,6 @@ export default function App() {
             }
           />
 
-          {/* Admin */}
           <Route
             path="/admin"
             element={
@@ -139,10 +118,9 @@ export default function App() {
           />
 
           {/* 404 */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </main>
     </>
   )
 }
-

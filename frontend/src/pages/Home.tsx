@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getHola, type HolaResponse } from '../services/prueba'
+import { getHola, type HolaResponse } from '../fetures/auth/api/prueba'
 
 function Home() {
   const [mensaje, setMensaje] = useState<string>('Cargando...')
